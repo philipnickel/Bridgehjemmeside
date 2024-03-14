@@ -1,0 +1,33 @@
+This webside is intented to be used as a tool for managing substitutions for 
+a bridge club. 
+
+First of all there needs to a front page that shows the following: 
+- menu bar with login option
+
+Some front page text that can be configured by admins 
+
+Substitution lists for each day of the week. 
+Afmeldingslister for each day of the week (these will be special and need to be created 
+manually by an admin)
+
+Now depending on which type of login is used: 
+Admin: 
+Menu bar with the following options: 
+- Startside (front page as everyone would see it)
+- Vis brugere: here all users can be viewed along with member details and type
+You can also create a new user from here (what a user is, will get defined later) 
+- Vis dage: Here an 'ansvarlig'/responsible can be chosen from each day among
+the 'coordinators' 
+- Vis specielle dage: Here an admin can create special lists (afmeldingslister)
+
+- Konfiguration: Here The admin has a text editor and can write some text that will show up on
+the front page 
+
+Coordinator: 
+- Startside (same as for everyone)
+- Vis substitutter: Will be able to create new substitute users and delete them
+- Dine dage: Here the coordinator can see the days for which he is responsible 
+each day can be selected and then an overview of the substitutes that are assigned to the days
+
+
+
