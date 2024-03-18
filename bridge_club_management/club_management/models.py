@@ -14,6 +14,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField()
     row = models.CharField(max_length=50)
     assigned_days = models.ManyToManyField('DayResponsibility', related_name='assigned_users', blank=True)
+    days_available = models.CharField(max_length=100, blank=True)
 
     groups = None
     user_permissions = None
