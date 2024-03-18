@@ -1,10 +1,11 @@
 from django.contrib import admin
 from .models import Week, Substitutliste, Afmeldingsliste, Configuration, DayResponsibility, CustomUser
-from .forms import CustomUserForm
+from .forms import CustomUserForm, SubstitutlisteForm
 
 
 class SubstitutlisteAdmin(admin.ModelAdmin):
-    list_display = ['name', 'day', 'deadline']  # Add 'name' field to the list display
+    #list_display = ['name', 'day', 'deadline']  # Add 'name' field to the list display
+    form = SubstitutlisteForm
 
 class AfmeldingslisteAdmin(admin.ModelAdmin):
     list_display = ['name', 'day', 'deadline']  # Add 'name' field to the list display
