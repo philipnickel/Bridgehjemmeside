@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User, AbstractUser
 
+
+
 class CustomUser(AbstractUser):
     USER_TYPES = (
         ('Admin', 'Admin'),
@@ -29,14 +31,14 @@ class Substitutliste(models.Model):
     week = models.ForeignKey(Week, on_delete=models.CASCADE)
     day = models.DateField()
     deadline = models.DateTimeField()
-    substitutes = models.ManyToManyField(User, related_name='substitutes')
+    substitutes = models.ManyToManyField('club_management.CustomUser', related_name='substitutes')
 
 class Afmeldingsliste(models.Model):
     name = models.CharField(max_length=100, default='unknown')  # Add a name field
     week = models.ForeignKey(Week, on_delete=models.CASCADE)
     day = models.DateField()
     deadline = models.DateTimeField()
-    framed_users = models.ManyToManyField(User, related_name='framed_users')
+    afbud = models.TextField(default='Afbud')
 
 class Configuration(models.Model):
     welcome_text = models.TextField()
