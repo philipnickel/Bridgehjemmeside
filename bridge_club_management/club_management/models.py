@@ -6,7 +6,6 @@ from django.db.models import Q
 
 class CustomUser(AbstractUser):
     USER_TYPES = (
-        ('Admin', 'Admin'),
         ('Substitutter', 'Substitutter'),
     )
 
@@ -17,18 +16,25 @@ class CustomUser(AbstractUser):
     assigned_days = models.ManyToManyField('DayResponsibility', related_name='assigned_users', blank=True)
     days_available = models.ManyToManyField('Day', related_name='available_users', blank=True)
     
-
-
     groups = None
     user_permissions = None
 
+
+
     def __str__(self):
         return self.username
+    
+    class Meta:
+        verbose_name = "Substitutter"  # Change the verbose name of the model
+        verbose_name_plural = "Substitutter"  # Change the verbose plural name of the model
 
 class Week(models.Model):
     name = models.CharField(max_length=100)
     def __str__(self):
         return self.name
+    class Meta:
+        verbose_name = "Uge"  # Change the verbose name of the model
+        verbose_name_plural = "Uger"  # Change the verbose plural name of the model
 
 class Substitutliste(models.Model):
     name = models.CharField(max_length=100, default='unknown')
@@ -54,6 +60,10 @@ class Substitutliste(models.Model):
 
         # Update the substitutes field with the retrieved users
         self.substitutes.set(available_users)
+    
+    class Meta:
+        verbose_name = "Substitutliste"  # Change the verbose name of the model
+        verbose_name_plural = "Substitutlister"  # Change the verbose plural name of the model
 
 class Afmeldingsliste(models.Model):
     name = models.CharField(max_length=100, default='unknown')  # Add a name field
@@ -62,8 +72,16 @@ class Afmeldingsliste(models.Model):
     deadline = models.DateTimeField()
     afbud = models.TextField(default='Afbud')
 
+    class Meta:
+        verbose_name = "Afmeldingsliste"  # Change the verbose name of the model
+        verbose_name_plural = "Afmeldingslister"  # Change the verbose plural name of the model
+
 class Configuration(models.Model):
     welcome_text = models.TextField()
+
+    class Meta:
+        verbose_name = "Forsidetekst"  # Change the verbose name of the model
+        verbose_name_plural = "Forsidetekst"  # Change the verbose plural name of the model
 
 class DayResponsibility(models.Model):
     day = models.ForeignKey('Day', on_delete=models.CASCADE)
@@ -71,6 +89,10 @@ class DayResponsibility(models.Model):
 
     def __str__(self):
         return f"{self.day}: {self.coordinator}"
+    
+    class Meta:
+        verbose_name = "Ansvarlig for dag"  # Change the verbose name of the model
+        verbose_name_plural = "Ansvarlig for dag"  # Change the verbose plural name of the model
 
 class Day(models.Model):
     name = models.CharField(max_length=20)
