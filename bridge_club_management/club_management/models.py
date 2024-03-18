@@ -21,14 +21,18 @@ class CustomUser(AbstractUser):
 
 class Week(models.Model):
     name = models.CharField(max_length=100)
+    def __str__(self):
+        return self.name
 
 class Substitutliste(models.Model):
+    name = models.CharField(max_length=100, default='unknown')  # Add a name field
     week = models.ForeignKey(Week, on_delete=models.CASCADE)
     day = models.DateField()
     deadline = models.DateTimeField()
     substitutes = models.ManyToManyField(User, related_name='substitutes')
 
 class Afmeldingsliste(models.Model):
+    name = models.CharField(max_length=100, default='unknown')  # Add a name field
     week = models.ForeignKey(Week, on_delete=models.CASCADE)
     day = models.DateField()
     deadline = models.DateTimeField()
