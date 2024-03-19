@@ -1,3 +1,5 @@
+import os
+
 """
 Django settings for bridge_club_management project.
 
@@ -38,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'club_management', 
+    'ckeditor', 
 ]
 
 MIDDLEWARE = [
@@ -104,7 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'da'
 
 TIME_ZONE = 'UTC'
 
@@ -112,6 +115,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),  # Assuming you have a 'locale' directory in your project
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -128,3 +134,10 @@ CRON_CLASSES = [
     'club_management.management.commands.update_substitution_lists.Command',
 ]
 
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        'height': 300,
+        # Add any additional configuration options here
+    },
+}

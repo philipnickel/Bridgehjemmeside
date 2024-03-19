@@ -78,10 +78,16 @@ class Afmeldingsliste(models.Model):
 
 class Configuration(models.Model):
     welcome_text = models.TextField()
+    name = models.CharField(max_length=100, default='Forsidetekst')  # Add a name field
+    def __str__(self):
+        return f"Velkomsttekst"
 
     class Meta:
         verbose_name = "Forsidetekst"  # Change the verbose name of the model
         verbose_name_plural = "Forsidetekst"  # Change the verbose plural name of the model
+    
+    def __str__(self):
+        return f"Velkomsttekst"
 
 class DayResponsibility(models.Model):
     day = models.ForeignKey('Day', on_delete=models.CASCADE)

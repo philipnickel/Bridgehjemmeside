@@ -3,11 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bridge Club Management System</title>
+    <title>Substitutlister</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 60px;
+            background-color: #F0EFEB; /* off-white */
+        }
+        .navbar {
+            background-color: #283618 !important; /* dark green-gray */
+            color: #FFFFFF; /* white */
+        }
+        .navbar .navbar-brand,
+        .navbar .nav-link {
+            color: #FFFFFF; /* white */
+        }
+        .jumbotron {
+            background-color: #FFFFFF; /* white */
+            color: #283618; /* dark green-gray */
+        }
+        .card-header {
+            background-color: #FFFFFF; /* white */
+            color: #283618; /* dark green-gray */
+        }
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid #dee2e6;
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Bridge Club Management System</h1>
-    <!-- Add more content here -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <a class="navbar-brand" href="#">Substitutlister</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'admin:index' %}">Login</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Jumbotron with Welcome Text -->
+        <div class="jumbotron">
+            <h1 class="display-4">Velkommen!</h1>
+            <p class="lead">{{ welcome_text|safe }}</p>
+        </div>
+
+        <!-- Substitutlister Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2>Substitutlister</h2>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for substitutliste in substitutlister %}
+                <li class="list-group-item">
+                    <h5 class="card-title">Uge: {{ substitutliste.week.name }}</h5>
+                    <p class="card-text">Dato: {{ substitutliste.day }}</p>
+                    <p class="card-text">Frist: {{ substitutliste.deadline }}</p>
+                    <p class="card-text">Substitutter: 
+                        {% if substitutliste.substitutes.all %}
+                            {% for substitute in substitutliste.substitutes.all %}
+                                {{ substitute.username }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            Ingen substitutter tilføjet
+                        {% endif %}
+                    </p>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Afmeldingslister Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2>Afmeldingslister</h2>
+            </div>
+            <ul class="list-group list-group-flush">
+                {% for afmeldingsliste in afmeldingslister %}
+                <li class="list-group-item">
+                    <h5 class="card-title">Uge: {{ afmeldingsliste.week.name }}</h5>
+                    <p class="card-text">Dato: {{ afmeldingsliste.day }}</p>
+                    <p class="card-text">Frist: {{ afmeldingsliste.deadline }}</p>
+                    <p class="card-text">Afbud: {{ afmeldingsliste.afbud }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (optional) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
-

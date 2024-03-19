@@ -1,6 +1,9 @@
 from django.contrib import admin
 from .models import Week, Substitutliste, Afmeldingsliste, Configuration, DayResponsibility, CustomUser
 from .forms import CustomUserForm, SubstitutlisteForm
+from django import forms
+from ckeditor.widgets import CKEditorWidget
+
 
 
 class SubstitutlisteAdmin(admin.ModelAdmin):
@@ -13,9 +16,34 @@ class AfmeldingslisteAdmin(admin.ModelAdmin):
 class CustomUserAdmin(admin.ModelAdmin):
     form = CustomUserForm
 
+class ConfigurationAdminForm(forms.ModelForm):
+    class Meta:
+        model = Configuration
+        fields = '__all__'
+        widgets = {
+            'welcome_text': CKEditorWidget(),
+        }
+
+
+class ConfigurationAdmin(admin.ModelAdmin):
+    ordering = ()
+    form = ConfigurationAdminForm
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    list_display = ['name']
+
+
+
+
+admin.site.register(Configuration, ConfigurationAdmin)
 
 admin.site.register(Week)
-admin.site.register(Configuration)
+
 admin.site.register(DayResponsibility)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Substitutliste, SubstitutlisteAdmin)
