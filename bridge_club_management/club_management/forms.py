@@ -1,18 +1,36 @@
 from django import forms
 from .models import CustomUser, Substitutliste, Day
 from django.db.models import Q
+from bootstrap_datepicker_plus.widgets import DatePickerInput
+
 
 
 class CustomUserForm(forms.ModelForm):
     days_available = forms.ModelMultipleChoiceField(
         queryset=Day.objects.all(),
         widget=forms.CheckboxSelectMultiple,
-        required=False
+        required=False, 
+        label='Days Available'
+    )
+
+    days_unavailable = forms.DateField(
+        widget=DatePickerInput(
+            options={
+                "format": "yyyy-mm-dd",
+                "todayHighlight": True,
+                "autoclose": True,
+                "clearBtn": True,
+                "multidate": True,  # Enable selecting multiple dates
+            }
+        ),
+        required=False,
+        label='Days Unavailable',
+        help_text='Select the range of days when the user is unavailable.'
     )
 
     class Meta:
         model = CustomUser
-        fields = ['user_type', 'phone_number', 'email', 'row', 'days_available']
+        fields = ['user_type', 'phone_number', 'email', 'row', 'days_available','days_unavailable']
 
 
 class CustomUserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
@@ -20,15 +38,6 @@ class CustomUserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
         return obj.username  # Customize the display label for each option if needed
 
 class SubstitutlisteForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Filter the choices for substitutes based on days_available
-        if self.instance.day:
-            day_of_week = self.instance.day.strftime('%A')
-            available_substitutes = CustomUser.objects.filter(
-                Q(days_available__name=day_of_week) | Q(days_available__name='Any')
-            )
-            self.fields['substitutes'].queryset = available_substitutes
 
     class Meta:
         model = Substitutliste

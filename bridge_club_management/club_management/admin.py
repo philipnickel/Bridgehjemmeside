@@ -6,6 +6,8 @@ from ckeditor.widgets import CKEditorWidget
 
 
 
+
+
 class SubstitutlisteAdmin(admin.ModelAdmin):
     #list_display = ['name', 'day', 'deadline']  # Add 'name' field to the list display
     form = SubstitutlisteForm
