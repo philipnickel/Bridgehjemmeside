@@ -144,3 +144,6 @@ CKEDITOR_CONFIGS = {
         # Add any additional configuration options here
     },
 }
+
+
+STATIC_ROOT = '/static'
