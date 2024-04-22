@@ -30,16 +30,15 @@
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
       <h2 class="text-2xl font-bold mb-4">Substitutlister</h2>
       <ul>
+
         {% for substitutliste in substitutlister %}
-        <li class="mb-4">
-          <h3 class="text-xl font-bold mb-2">Uge: {{ substitutliste.week.name }}</h3>
-          <p class="mb-1">Dato: {{ substitutliste.day }}</p>
-          <p class="mb-1">Frist: {{ substitutliste.deadline }}</p>
-          <p class="mb-1">Substitutter:
-            {% if substitutliste.substitutes.all %}
-            {% for substitute in substitutliste.substitutes.all %}
-            {{ substitute.username }}{% if not forloop.last %}, {% endif %}
-            {% endfor %}
+        <li class="list-group-item">
+          <h5 class="card-title">Uge: {{ substitutliste.week.name }}</h5>
+          <p class="card-text">Dato: {{ substitutliste.day }}</p>
+          <p class="card-text">Frist: {{ substitutliste.deadline }}</p>
+          <p class="card-text">Substitutter:
+            {% if substitutliste.substitutes_text %}
+            {{ substitutliste.substitutes_text }}
             {% else %}
             Ingen substitutter tilføjet
             {% endif %}
