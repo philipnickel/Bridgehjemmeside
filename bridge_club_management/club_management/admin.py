@@ -1,29 +1,37 @@
-from django.contrib import admin
-from .models import Week, Substitutliste, Afmeldingsliste, Configuration, DayResponsibility, CustomUser
-from .forms import CustomUserForm, SubstitutlisteForm
-from django import forms
 from ckeditor.widgets import CKEditorWidget
+from django import forms
+from django.contrib import admin
 
-
-
+from .forms import CustomUserForm, SubstitutlisteForm
+from .models import (
+    Afmeldingsliste,
+    Configuration,
+    CustomUser,
+    DayResponsibility,
+    Substitutliste,
+    Week,
+)
 
 
 class SubstitutlisteAdmin(admin.ModelAdmin):
-    #list_display = ['name', 'day', 'deadline']  # Add 'name' field to the list display
+    # list_display = ['name', 'day', 'deadline']  # Add 'name' field to the list display
     form = SubstitutlisteForm
 
+
 class AfmeldingslisteAdmin(admin.ModelAdmin):
-    list_display = ['name', 'day', 'deadline']  # Add 'name' field to the list display
+    list_display = ["name", "day", "deadline"]  # Add 'name' field to the list display
+
 
 class CustomUserAdmin(admin.ModelAdmin):
     form = CustomUserForm
 
+
 class ConfigurationAdminForm(forms.ModelForm):
     class Meta:
         model = Configuration
-        fields = '__all__'
+        fields = "__all__"
         widgets = {
-            'welcome_text': CKEditorWidget(),
+            "welcome_text": CKEditorWidget(),
         }
 
 
@@ -37,9 +45,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    list_display = ['name']
-
-
+    list_display = ["name"]
 
 
 admin.site.register(Configuration, ConfigurationAdmin)

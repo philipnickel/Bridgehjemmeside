@@ -4,13 +4,6 @@ from django.db.models import Q
 from django.utils import timezone
 
 
-class UnavailableDate(models.Model):
-    date = models.DateField()
-
-    def __str__(self):
-        return str(self.date)
-
-
 class CustomUser(AbstractUser):
     USER_TYPES = (("Substitutter", "Substitutter"),)
 
@@ -24,7 +17,8 @@ class CustomUser(AbstractUser):
     days_available = models.ManyToManyField(
         "Day", related_name="available_users", blank=True
     )
-    unavailable_dates = models.ManyToManyField(UnavailableDate, related_name="users")
+
+    days_unavailable = models.TextField(blank=True)
 
     groups = None
     user_permissions = None
