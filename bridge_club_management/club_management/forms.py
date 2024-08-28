@@ -6,6 +6,7 @@ from .models import CustomUser, Day, Substitutliste, Række, UnavailableDay
 
 
 class CustomUserForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, label="Username")  # Include the username field
     days_available = forms.ModelMultipleChoiceField(
         queryset=Day.objects.exclude(name__in=["Saturday", "Sunday"]),
         widget=forms.CheckboxSelectMultiple,
@@ -21,6 +22,7 @@ class CustomUserForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = [
+            "username",
             "user_type",
             "phone_number",
             "email",
