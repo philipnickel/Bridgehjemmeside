@@ -27,6 +27,7 @@ class CustomUser(AbstractUser):
         "Day", related_name="available_users", blank=True
     )
 
+    custom_note = models.TextField(blank=True, null=True, help_text="Enter a custom note for the user.")
     days_unavailable = models.TextField(blank=True)
 
     groups = None

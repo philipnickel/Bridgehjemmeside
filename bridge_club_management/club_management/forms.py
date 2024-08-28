@@ -22,6 +22,7 @@ class CustomUserForm(forms.ModelForm):
             "række",
             "days_available",
             "days_unavailable",
+            "custom_note"
         ]
 
 
