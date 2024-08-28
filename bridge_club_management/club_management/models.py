@@ -4,13 +4,22 @@ from django.db.models import Q
 from django.utils import timezone
 
 
+class Række(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Rækker"  # Plural name in the admin panel
+
 class CustomUser(AbstractUser):
     USER_TYPES = (("Substitutter", "Substitutter"),)
 
     user_type = models.CharField(max_length=20, choices=USER_TYPES)
     phone_number = models.CharField(max_length=15)
     email = models.EmailField()
-    row = models.CharField(max_length=50)
+    række = models.ForeignKey(Række, on_delete=models.SET_NULL, null=True, blank=True)
     assigned_days = models.ManyToManyField(
         "DayResponsibility", related_name="assigned_users", blank=True
     )
@@ -133,4 +142,6 @@ class Day(models.Model):
 
     def __str__(self):
         return self.name
+
+
 

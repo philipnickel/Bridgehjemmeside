@@ -10,6 +10,7 @@ from .models import (
     DayResponsibility,
     Substitutliste,
     Week,
+    Række  
 )
 
 
@@ -51,7 +52,7 @@ class ConfigurationAdmin(admin.ModelAdmin):
 admin.site.register(Configuration, ConfigurationAdmin)
 
 admin.site.register(Week)
-
+admin.site.register(Række)
 admin.site.register(DayResponsibility)
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Substitutliste, SubstitutlisteAdmin)
