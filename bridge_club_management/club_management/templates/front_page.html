@@ -7,11 +7,13 @@
   <title>Substitutlister</title>
   <!-- Include Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Include Alpine.js for interactivity -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.0/dist/alpine.min.js" defer></script>
 </head>
 
 <body class="bg-gray-100">
   <nav class="bg-gray-800 shadow">
-    <div class="container mx-auto py-4">
+    <div class="container mx-auto py-4 flex justify-between items-center">
       <a class="text-xl font-bold text-gray-200" href="#">Substitutlister</a>
       <ul class="ml-auto">
         <li class="inline-block ml-4"><a href="{% url 'admin:index' %}" class="text-gray-200">Login</a></li>
@@ -27,43 +29,115 @@
     </div>
 
     <!-- Substitutlister Section -->
-    <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8" x-data="{ selectedWeek: '' }">
       <h2 class="text-2xl font-bold mb-4">Substitutlister</h2>
-      <ul>
 
-        {% for substitutliste in substitutlister %}
-        <li class="list-group-item">
-          <h5 class="card-title">Uge: {{ substitutliste.week.name }}</h5>
-          <p class="card-text">Dato: {{ substitutliste.day }}</p>
-          <p class="card-text">Frist: {{ substitutliste.deadline }}</p>
-          <p class="card-text">Substitutter:
-            {% if substitutliste.substitutes_text %}
-            {{ substitutliste.substitutes_text }}
-            {% else %}
-            Ingen substitutter tilføjet
-            {% endif %}
-          </p>
-        </li>
-        {% endfor %}
-      </ul>
+      <!-- Week Selection Dropdown -->
+      <div class="mb-4">
+        <label for="week-selector" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
+        <select id="week-selector" x-model="selectedWeek"
+          class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          <option value="">-- Vælg en uge --</option>
+          {% for week in weeks %}
+          <option value="{{ week.id }}">{{ week.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Substitutliste Table -->
+      <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
+        <thead>
+          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
+            <th class="py-3 px-6 text-left">Dag</th>
+            <th class="py-3 px-6 text-left">Ansvarlig</th>
+            <th class="py-3 px-6 text-left">Handling</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Loop through substitutlister and only show those that match the selected week -->
+          {% for substitutliste in substitutlister %}
+          <tr x-show="selectedWeek == '{{ substitutliste.week.id }}'"
+            class="border-b border-gray-200 hover:bg-gray-100">
+            <td class="py-3 px-6 text-left whitespace-nowrap">
+              {{ substitutliste.day|date:"l" }} ({{ substitutliste.day }})
+            </td>
+            <td class="py-3 px-6 text-left">
+              {% with substitutliste.day.id as day_id %}
+              {% with responsibility_list|dictsort:"0"|first as first_responsibility %}
+              {% if first_responsibility.0 == day_id %}
+              {{ first_responsibility.1 }}
+              {% else %}
+              Ikke tildelt
+              {% endif %}
+              {% endwith %}
+              {% endwith %}
+            </td>
+            <td class="py-3 px-6 text-left">
+              <button
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onclick="selectSubstitut({{ substitutliste.id }}, '{{ substitutliste.day }}')">Vælg</button>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
 
     <!-- Afmeldingslister Section -->
-    <div class="bg-white shadow-lg rounded-lg p-8">
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8" x-data="{ selectedWeekAfbud: '' }">
       <h2 class="text-2xl font-bold mb-4">Afmeldingslister</h2>
+
+      <!-- Week Selection Dropdown -->
+      <div class="mb-4">
+        <label for="week-selector-afbud" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
+        <select id="week-selector-afbud" x-model="selectedWeekAfbud"
+          class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          <option value="">-- Vælg en uge --</option>
+          {% for week in weeks %}
+          <option value="{{ week.id }}">{{ week.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Afmeldingsliste Display -->
       <ul>
+        <!-- Loop through afmeldingslister and only show those that match the selected week -->
         {% for afmeldingsliste in afmeldingslister %}
-        <li class="mb-4">
-          <h3 class="text-xl font-bold mb-2">Uge: {{ afmeldingsliste.week.name }}</h3>
-          <p class="mb-1">Dato: {{ afmeldingsliste.day }}</p>
-          <p class="mb-1">Frist: {{ afmeldingsliste.deadline }}</p>
-          <p class="mb-1">Afbud: {{ afmeldingsliste.afbud }}</p>
+        <li x-show="selectedWeekAfbud == '{{ afmeldingsliste.week.id }}'"
+          class="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
+          <h3 class="text-xl font-bold mb-2">{{ afmeldingsliste.name }}</h3>
+          <p class="mb-1"><strong>Dag:</strong> {{ afmeldingsliste.day|date:"l, d F Y" }}</p>
+          <p class="mb-1"><strong>Frist:</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
+          <p class="mb-1"><strong>Afbud:</strong> {{ afmeldingsliste.afbud }}</p>
+
+          <!-- Form to Append Afbud -->
+          <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
+            {% csrf_token %}
+            <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
+            <input type="text" id="afbud-name" name="afbud_name"
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Indtast navn">
+            <button type="submit"
+              class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              Meld Afbud
+            </button>
+          </form>
         </li>
         {% endfor %}
       </ul>
     </div>
   </div>
 
+  <!-- Add your JavaScript at the end of the body -->
+  <script>
+    function selectSubstitut(listId, day) {
+      let email = prompt("Indtast din email for at vælge substitut for " + day + ":");
+      if (email) {
+        alert("Substitut valgt! En notifikation vil blive sendt til den ansvarlige.");
+        // Logic to update the substitut status in the backend should be added here
+      }
+    }
+  </script>
 
 </body>
 

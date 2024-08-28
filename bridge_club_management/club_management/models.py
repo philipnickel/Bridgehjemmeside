@@ -59,7 +59,6 @@ class Substitutliste(models.Model):
     week = models.ForeignKey(Week, on_delete=models.CASCADE)
     day = models.DateField()
     deadline = models.DateTimeField()
-    substitutes_text = models.TextField(blank=True)  # Change to TextField
 
     def __str__(self):
         return self.name
