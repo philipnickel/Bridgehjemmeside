@@ -2,7 +2,7 @@
 from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib import admin
-
+from django.db.models import Q
 from .forms import CustomUserForm, SubstitutlisteForm
 from .models import (
     Afmeldingsliste,
@@ -16,6 +16,28 @@ from .models import (
     UserSubstitutAssignment  # Import the new model
 )
 
+# Define the custom action
+def update_substitutlister(modeladmin, request, queryset):
+    for substitutliste in queryset:
+        day_of_week = substitutliste.day.strftime("%A")
+        available_users = CustomUser.objects.filter(
+            Q(days_available__name=day_of_week) | Q(days_available__name="Any")
+        )
+
+        for user in available_users:
+            UserSubstitutAssignment.objects.get_or_create(
+                user=user, 
+                substitutliste=substitutliste, 
+                defaults={'status': 'Free'}
+            )
+        
+        substitutliste.save()
+
+    modeladmin.message_user(request, "Selected lists have been updated successfully.")
+
+update_substitutlister.short_description = "Opdatér valgte lister"
+
+
 # Inline class to manage UserSubstitutAssignment from within CustomUser and Substitutliste admin pages
 class UserSubstitutAssignmentInline(admin.TabularInline):
     model = UserSubstitutAssignment
@@ -25,6 +47,7 @@ class UserSubstitutAssignmentInline(admin.TabularInline):
 class SubstitutlisteAdmin(admin.ModelAdmin):
     form = SubstitutlisteForm
     inlines = [UserSubstitutAssignmentInline]  # Include the inline for managing assignments
+    actions = [update_substitutlister]  # Add the custom action
 
 # Update AfmeldingslisteAdmin to display relevant fields
 class AfmeldingslisteAdmin(admin.ModelAdmin):
