@@ -31,7 +31,6 @@ class CustomUser(AbstractUser):
     days_available = models.ManyToManyField("Day", related_name="available_users", blank=True)
 
     custom_note = models.TextField(blank=True, null=True, help_text="Enter a custom note for the user.")
-    unavailable_days = models.ManyToManyField('UnavailableDay', blank=True)
     
     groups = None
     user_permissions = None

@@ -58,25 +58,7 @@ class CustomUserAdmin(admin.ModelAdmin):
     form = CustomUserForm
     inlines = [UserSubstitutAssignmentInline]  # Include the inline for managing assignments
 
-    def get_form(self, request, obj=None, **kwargs):
-        form = super().get_form(request, obj, **kwargs)
-        if obj:
-            form.base_fields['unavailable_days'].queryset = UnavailableDay.objects.all()
-        return form
 
-    def save_model(self, request, obj, form, change):
-        super().save_model(request, obj, form, change)
-        if 'unavailable_days' in form.cleaned_data:
-            obj.unavailable_days.set(form.cleaned_data['unavailable_days'])
-        else:
-            obj.unavailable_days.clear()
-
-    def get_list_display(self, request):
-        return ('username', 'email', 'unavailable_days_display')
-
-    def unavailable_days_display(self, obj):
-        return ", ".join(day.date.strftime("%Y-%m-%d") for day in obj.unavailable_days.all())
-    unavailable_days_display.short_description = 'Unavailable Days'
 
 # Admin form for managing Configuration with CKEditor
 class ConfigurationAdminForm(forms.ModelForm):
