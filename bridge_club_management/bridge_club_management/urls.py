@@ -17,10 +17,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-
+from club_management import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('club_management.urls')),  # Include app-specific URL patterns
-    
+    path('', views.front_page, name='front_page'),  # Update this line
+    path('select_substitut/', views.select_substitut, name='select_substitut'),
+    path('login/', views.login, name='login'),
+    path('append-afbud/<int:afmeldingsliste_id>/', views.append_afbud, name='append_afbud'),
+    path('afmeldingsliste/<int:afmeldingsliste_id>/', views.afmeldingsliste_detail, name='afmeldingsliste_detail'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
