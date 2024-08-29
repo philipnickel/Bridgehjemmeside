@@ -8,6 +8,7 @@ import logging
 from django.db.models import Prefetch
 from django.contrib import messages
 from django.urls import reverse
+from django.http import JsonResponse
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +97,11 @@ def select_substitut(request):
     if request.method == 'POST':
         list_id = request.POST.get('list_id')
         substitut_id = request.POST.get('substitut_id')
-        selected_week = request.POST.get('selected_week')
-        selected_day = request.POST.get('selected_day')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        pre_arranged = request.POST.get('pre_arranged') == 'on'
+        responsible_email = request.POST.get('responsible_email')
         
         try:
             assignment = UserSubstitutAssignment.objects.get(
@@ -107,16 +111,33 @@ def select_substitut(request):
             assignment.status = 'Taken'
             assignment.save()
             
-            messages.success(request, 'Substitut er blevet valgt.')
+            substitutliste = get_object_or_404(Substitutliste, id=list_id)
+            substitut = get_object_or_404(CustomUser, id=substitut_id)
+            
+            substitut_name = substitut.get_full_name() or substitut.username
+            
+            # Send email to responsible person
+            subject = 'Ny substitut valgt'
+            message = f"""
+            {name} har valgt substitut {substitut_name} for listen {substitutliste.name} ({substitutliste.day}).
+
+            Kontaktoplysninger på {name}:
+            Email: {email}
+            Telefon: {phone}
+
+            Aftale lavet på forhånd: {'Ja' if pre_arranged else 'Nej'}
+            """
+            send_mail(subject, message, 'from@example.com', [responsible_email])
+            
+            return JsonResponse({'success': True})
         except UserSubstitutAssignment.DoesNotExist:
-            messages.error(request, 'Der opstod en fejl ved valg af substitut.')
-        
-        # Construct the redirect URL with query parameters
-        base_url = reverse('front_page')
-        redirect_url = f'{base_url}?week={selected_week}&day={selected_day}'
-        return redirect(redirect_url)
-    
-    return redirect('front_page')
+            logger.error(f"UserSubstitutAssignment not found for list_id={list_id}, substitut_id={substitut_id}")
+            return JsonResponse({'success': False, 'error': 'Substitut assignment not found.'})
+        except Exception as e:
+            logger.error(f"Unexpected error in select_substitut: {str(e)}")
+            return JsonResponse({'success': False, 'error': str(e)})
+
+    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 def login(request):
     # Logic for handling login functionality

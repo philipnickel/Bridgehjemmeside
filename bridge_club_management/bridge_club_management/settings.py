@@ -147,3 +147,6 @@ CKEDITOR_CONFIGS = {
 
 
 STATIC_ROOT = '/home/Philipnickel/Bridgehjemmeside/bridge_club_management/static'
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
