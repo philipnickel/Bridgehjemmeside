@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Substitutlister</title>
+  <title>Substitutlister og Afmeldingslister</title>
   <!-- Include Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <!-- Include Alpine.js for interactivity -->
@@ -14,7 +14,7 @@
 <body class="bg-gray-100">
   <nav class="bg-gray-800 shadow">
     <div class="container mx-auto py-4 flex justify-between items-center">
-      <a class="text-xl font-bold text-gray-200" href="#">Substitutlister</a>
+      <a class="text-xl font-bold text-gray-200" href="#">Substitutlister og Afmeldingslister</a>
       <ul class="ml-auto">
         <li class="inline-block ml-4"><a href="{% url 'admin:index' %}" class="text-gray-200">Login</a></li>
       </ul>
@@ -37,6 +37,7 @@
         <label for="week-selector" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
         <select id="week-selector" x-model="selectedWeek" @change="filterSubstitutlister()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          <option value="">Alle uger</option>
           {% for week in weeks %}
           <option value="{{ week.id }}">{{ week.name }}</option>
           {% endfor %}
@@ -45,9 +46,10 @@
 
       <!-- Day Selection Dropdown -->
       <div class="mb-4">
-        <label for="day-select" class="block text-lg font-medium text-gray-700">Vælg dag:</label>
-        <select id="day-select" x-model="selectedDay" @change="filterSubstitutlister()"
+        <label for="day-selector" class="block text-lg font-medium text-gray-700">Vælg dag:</label>
+        <select id="day-selector" x-model="selectedDay" @change="filterSubstitutlister()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          <option value="">Alle dage</option>
           <option value="Monday">Mandag</option>
           <option value="Tuesday">Tirsdag</option>
           <option value="Wednesday">Onsdag</option>
@@ -56,15 +58,13 @@
         </select>
       </div>
 
-
-
       <!-- Substitutliste Table -->
       <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
         <thead>
           <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
             <th class="py-3 px-6 text-left">Dag</th>
             <th class="py-3 px-6 text-left">Ansvarlig</th>
-            <!-- Removed the 'Handling' column header -->
+            <th class="py-3 px-6 text-left">Substitutter</th>
           </tr>
         </thead>
         <tbody>
@@ -82,7 +82,31 @@
                 <span class="text-sm text-gray-600">{{ substitutliste.responsible_email }}</span>
               {% endif %}
             </td>
-            <!-- Removed the 'Handling' column and button -->
+            <td class="py-3 px-6 text-left">
+              {% if substitutliste.assigned_substitutter %}
+                <ul class="list-none">
+                  {% for substitut in substitutliste.assigned_substitutter %}
+                    <li class="mb-4 p-2 border rounded">
+                      <strong>{{ substitut.name }}</strong><br>
+                      <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
+                      {% if substitut.note %}
+                        <span class="text-sm italic">Note: {{ substitut.note }}</span><br>
+                      {% endif %}
+                      <form method="post" action="{% url 'select_substitut' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="list_id" value="{{ substitutliste.id }}">
+                        <input type="hidden" name="substitut_id" value="{{ substitut.id }}">
+                        <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
+                          Vælg
+                        </button>
+                      </form>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <span class="text-gray-500">Ingen tilgængelige substitutter</span>
+              {% endif %}
+            </td>
           </tr>
           {% endfor %}
         </tbody>
@@ -107,7 +131,6 @@
 
       <!-- Afmeldingsliste Display -->
       <ul>
-        <!-- Loop through afmeldingslister and only show those that match the selected week -->
         {% for afmeldingsliste in afmeldingslister %}
         <li x-show="selectedWeekAfbud == '{{ afmeldingsliste.week.id }}'"
           class="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
@@ -162,7 +185,6 @@
                 dayMatch = row.dataset.day.toLowerCase() === dayMap[this.selectedDay].toLowerCase();
               }
               row.style.display = weekMatch && dayMatch ? '' : 'none';
-              console.log('Row:', row.dataset.week, row.dataset.day, 'Visible:', weekMatch && dayMatch);
             });
           }
         }))

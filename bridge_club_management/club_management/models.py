@@ -1,4 +1,3 @@
-
 from django.contrib.auth.models import AbstractUser, User
 from django.db import models
 from django.db.models import Q
@@ -86,21 +85,15 @@ class Substitutliste(models.Model):
 
 
 class UserSubstitutAssignment(models.Model):
-    STATUS_CHOICES = [
-        ('Free', 'Free'),
-        ('Taken', 'Taken'),
-        ('Fraværende', 'Fraværende')
-    ]
-
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='substitut_assignments')
-    substitutliste = models.ForeignKey(Substitutliste, on_delete=models.CASCADE, related_name='user_assignments')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Free')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    substitutliste = models.ForeignKey(Substitutliste, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, choices=[('Free', 'Free'), ('Taken', 'Taken')], default='Free')
 
     class Meta:
         unique_together = ('user', 'substitutliste')
 
     def __str__(self):
-        return f"{self.user.username} - {self.substitutliste.name} ({self.get_status_display()})"
+        return f"{self.user} - {self.substitutliste} - {self.status}"
 
 
 class Afmeldingsliste(models.Model):
@@ -127,20 +120,20 @@ class Configuration(models.Model):
         verbose_name_plural = "Forsidetekst"  # Change the verbose plural name of the model
 
 
+class Day(models.Model):
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
+
 class DayResponsibility(models.Model):
-    day = models.ForeignKey("Day", on_delete=models.CASCADE)
+    day = models.ForeignKey(Day, on_delete=models.CASCADE)
     coordinator = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.day}: {self.coordinator}"
 
     class Meta:
-        verbose_name = "Ansvarlig for dag"  # Change the verbose name of the model
-        verbose_name_plural = "Ansvarlig for dag"  # Change the verbose plural name of the model
+        verbose_name = "Ansvarlig for dag"
+        verbose_name_plural = "Ansvarlig for dag"
 
-
-class Day(models.Model):
-    name = models.CharField(max_length=20)
-
-    def __str__(self):
-        return self.name
