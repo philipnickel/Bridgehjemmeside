@@ -2,6 +2,10 @@ from django.contrib.auth.models import AbstractUser, User
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
+import logging
+from django.utils.translation import gettext as _
+
+logger = logging.getLogger(__name__)
 
 class Række(models.Model):
     name = models.CharField(max_length=100)
@@ -28,7 +32,6 @@ class CustomUser(AbstractUser):
     række = models.ForeignKey(Række, on_delete=models.SET_NULL, null=True, blank=True)
     assigned_days = models.ManyToManyField("DayResponsibility", related_name="assigned_users", blank=True)
     days_available = models.ManyToManyField("Day", related_name="available_users", blank=True)
-
     custom_note = models.TextField(blank=True, null=True, help_text="Enter a custom note for the user.")
     
     groups = None
@@ -38,8 +41,8 @@ class CustomUser(AbstractUser):
         return self.username
 
     class Meta:
-        verbose_name = "Substitutter"  # Change the verbose name of the model
-        verbose_name_plural = "Substitutter"  # Change the verbose plural name of the model
+        verbose_name = "Substitutter"
+        verbose_name_plural = "Substitutter"
 
 
 class Week(models.Model):
@@ -63,25 +66,41 @@ class Substitutliste(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if not self.pk:
-            super().save(*args, **kwargs)
-
-        day_of_week = self.day.strftime("%A")
-        available_users = CustomUser.objects.filter(Q(days_available__name=day_of_week) | Q(days_available__name="Any"))
-
-        for user in available_users:
-            # Automatically create UserSubstitutAssignment for each available user
-            UserSubstitutAssignment.objects.get_or_create(
-                user=user, 
-                substitutliste=self, 
-                defaults={'status': 'Free'}
-            )
-
         super().save(*args, **kwargs)
+        self.update_assignments()
+
+    def update_assignments(self):
+        weekday = self.day.strftime("%A")
+        logger.info(f"Updating assignments for {self.name} on {weekday}")
+
+        available_users = CustomUser.objects.filter(
+            Q(days_available__name=weekday) | Q(days_available__name="Any")
+        )
+        logger.info(f"Found {available_users.count()} available users")
+
+        # Remove existing assignments
+        deleted_count = UserSubstitutAssignment.objects.filter(substitutliste=self).delete()[0]
+        logger.info(f"Deleted {deleted_count} existing assignments")
+
+        # Create new assignments
+        created_count = 0
+        for user in available_users:
+            UserSubstitutAssignment.objects.create(
+                user=user,
+                substitutliste=self,
+                status='Free'
+            )
+            created_count += 1
+
+        logger.info(f"Created {created_count} new assignments")
+
+    @property
+    def day_name(self):
+        return self.day.strftime("%A")
 
     class Meta:
-        verbose_name = "Substitutliste"  # Change the verbose name of the model
-        verbose_name_plural = "Substitutlister"  # Change the verbose plural name of the model
+        verbose_name = "Substitutliste"
+        verbose_name_plural = "Substitutlister"
 
 
 class UserSubstitutAssignment(models.Model):
@@ -126,10 +145,16 @@ class Configuration(models.Model):
 
 
 class Day(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=20)  # This will keep the existing Danish names
+    english_name = models.CharField(max_length=20, default='')
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "Dag"
+        verbose_name_plural = "Dage"
+
 
 class DayResponsibility(models.Model):
     day = models.ForeignKey(Day, on_delete=models.CASCADE)

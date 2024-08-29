@@ -52,24 +52,17 @@ def front_page(request):
     responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
     responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in responsibilities}
 
-    assignments = UserSubstitutAssignment.objects.select_related('substitutliste', 'user')
-    assignments_by_substitutliste = {substitutliste.id: [] for substitutliste in substitutlister}
-    
-    for assignment in assignments:
-        assignments_by_substitutliste[assignment.substitutliste.id].append(assignment)
-
     for substitutliste in substitutlister:
-        substitutliste.day_of_week = DateFormat(substitutliste.day).format('l')
-        day_name = substitutliste.day_of_week.lower()
-        responsible_coordinator = responsibility_dict.get(day_name)
+        substitutliste.day_of_week = substitutliste.day.strftime("%A")
+        day = Day.objects.get(english_name=substitutliste.day_of_week)
+        responsible_coordinator = responsibility_dict.get(day.name.lower())
         if responsible_coordinator:
             substitutliste.responsible_name = responsible_coordinator.get_full_name() or responsible_coordinator.username
             substitutliste.responsible_email = responsible_coordinator.email
         else:
-            substitutliste.responsible_name = "Ikke tildelt"
+            substitutliste.responsible_name = "Not assigned"
             substitutliste.responsible_email = ""
 
-        # Add assigned substitutter to each substitutliste
         substitutliste.assigned_substitutter = [
             {
                 'name': assignment.user.get_full_name() or assignment.user.username,
@@ -77,9 +70,9 @@ def front_page(request):
                 'note': assignment.user.custom_note,
                 'email': assignment.user.email,
                 'id': assignment.user.id,
-                'status': assignment.status  # Add this line to include the status
+                'status': assignment.status
             }
-            for assignment in getattr(substitutliste, 'assignments', [])
+            for assignment in substitutliste.assignments
         ]
 
     context = {
@@ -87,7 +80,6 @@ def front_page(request):
         'afmeldingslister': afmeldingslister,
         'weeks': weeks,
         'welcome_text': welcome_text,
-        'assignments_by_substitutliste': assignments_by_substitutliste,
         'days': Day.objects.all(),
     }
 

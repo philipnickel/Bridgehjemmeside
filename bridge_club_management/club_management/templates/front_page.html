@@ -53,11 +53,9 @@
         <select id="day-selector" x-model="selectedDay" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           <option value="">Alle dage</option>
-          <option value="Monday">Mandag</option>
-          <option value="Tuesday">Tirsdag</option>
-          <option value="Wednesday">Onsdag</option>
-          <option value="Thursday">Torsdag</option>
-          <option value="Friday">Fredag</option>
+          {% for day in days %}
+            <option value="{{ day.english_name }}">{{ day.name }}</option>
+          {% endfor %}
         </select>
       </div>
 
@@ -80,6 +78,8 @@
               data-responsible-email="{{ substitutliste.responsible_email }}">
             <td class="py-3 px-6 text-left whitespace-nowrap">
               {{ substitutliste.day_name }} ({{ substitutliste.day|date:"d-m-y" }})
+              <!-- Debug output -->
+              <small class="text-gray-500">Week: {{ substitutliste.week.id }}, Day: {{ substitutliste.day_name }}</small>
             </td>
             <td class="py-3 px-6 text-left">
               {{ substitutliste.responsible_name }}
@@ -274,19 +274,14 @@
             console.log('Filtering with week:', this.selectedWeek, 'and day:', this.selectedDay);
             const rows = document.querySelectorAll('[data-week][data-day]');
             rows.forEach(row => {
-              const weekMatch = this.selectedWeek === '' || row.dataset.week === this.selectedWeek;
-              let dayMatch = this.selectedDay === '';
-              if (!dayMatch) {
-                const dayMap = {
-                  'Monday': 'mandag',
-                  'Tuesday': 'tirsdag',
-                  'Wednesday': 'onsdag',
-                  'Thursday': 'torsdag',
-                  'Friday': 'fredag'
-                };
-                dayMatch = row.dataset.day.toLowerCase() === dayMap[this.selectedDay].toLowerCase();
-              }
-              row.style.display = weekMatch && dayMatch ? '' : 'none';
+                console.log('Row data:', row.dataset);
+                const weekMatch = this.selectedWeek === '' || row.dataset.week === this.selectedWeek;
+                let dayMatch = this.selectedDay === '';
+                if (!dayMatch) {
+                    dayMatch = row.dataset.day === this.selectedDay;
+                }
+                console.log('Week match:', weekMatch, 'Day match:', dayMatch);
+                row.style.display = weekMatch && dayMatch ? '' : 'none';
             });
           },
           updateUrl() {

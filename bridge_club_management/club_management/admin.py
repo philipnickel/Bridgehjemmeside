@@ -15,27 +15,19 @@ from .models import (
     UserSubstitutAssignment  # Import the new model
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # Define the custom action
+@admin.action(description="Opdatér valgte lister")
 def update_substitutlister(modeladmin, request, queryset):
+    logger.info(f"Updating {queryset.count()} substitutlister")
     for substitutliste in queryset:
-        day_of_week = substitutliste.day.strftime("%A")
-        available_users = CustomUser.objects.filter(
-            Q(days_available__name=day_of_week) | Q(days_available__name="Any")
-        )
-
-        for user in available_users:
-            UserSubstitutAssignment.objects.get_or_create(
-                user=user, 
-                substitutliste=substitutliste, 
-                defaults={'status': 'Free'}
-            )
-        
-        substitutliste.save()
-
+        logger.info(f"Updating substitutliste: {substitutliste.name}")
+        substitutliste.update_assignments()
     modeladmin.message_user(request, "Selected lists have been updated successfully.")
-
-update_substitutlister.short_description = "Opdatér valgte lister"
-
+    logger.info("Finished updating substitutlister")
 
 # Inline class to manage UserSubstitutAssignment from within CustomUser and Substitutliste admin pages
 class UserSubstitutAssignmentInline(admin.TabularInline):
@@ -45,8 +37,14 @@ class UserSubstitutAssignmentInline(admin.TabularInline):
 # Update SubstitutlisteAdmin to include the inline
 class SubstitutlisteAdmin(admin.ModelAdmin):
     form = SubstitutlisteForm
+    list_display = ['name', 'week', 'day', 'deadline']
+    list_filter = ['week', 'day']
     inlines = [UserSubstitutAssignmentInline]  # Include the inline for managing assignments
-    actions = [update_substitutlister]  # Add the custom action
+    actions = [update_substitutlister]
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        logger.info(f"Saved Substitutliste {obj.name} for day {obj.day} ({obj.day})")
 
 # Update AfmeldingslisteAdmin to display relevant fields
 class AfmeldingslisteAdmin(admin.ModelAdmin):
@@ -57,7 +55,12 @@ class CustomUserAdmin(admin.ModelAdmin):
     form = CustomUserForm
     inlines = [UserSubstitutAssignmentInline]  # Include the inline for managing assignments
 
+    def get_list_display(self, request):
+        return ('username', 'email', 'phone_number')
 
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        logger.info(f"Saved user {obj.username} with available days: {', '.join(obj.days_available.values_list('name', flat=True))}")
 
 # Admin form for managing Configuration with CKEditor
 class ConfigurationAdminForm(forms.ModelForm):
