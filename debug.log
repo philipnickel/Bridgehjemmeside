@@ -1,0 +1,147 @@
+Watching for file changes with StatReloader
+Updating assignments for test on Thursday
+Found 0 available users
+Deleted 0 existing assignments
+Created 0 new assignments
+Updating assignments for torsdag_36 on Thursday
+Found 0 available users
+Deleted 0 existing assignments
+Created 0 new assignments
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/models.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/admin.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/admin.py changed, reloading.
+Watching for file changes with StatReloader
+Saved user test_sub_alle_dage with available days: Mandag, Tirsdag, Onsdag, Torsdag, Fredag
+Updating assignments for torsdag_36 on Thursday
+User test_sub_2 is available on: Mandag, Tirsdag, Onsdag
+User test_sub_alle_dage is available on: Mandag, Tirsdag, Onsdag, Torsdag, Fredag
+User test_sub_ingen_dage is available on: 
+Found 0 available users
+Deleted 0 existing assignments
+Created 0 new assignments
+Saved Substitutliste torsdag_36 for day 2024-09-05 (Thursday)
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/models.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/models.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/forms.py changed, reloading.
+Watching for file changes with StatReloader
+Updating assignments for torsdag_36 on Torsdag
+Found 1 available users
+Deleted 0 existing assignments
+Created 1 new assignments
+Saved Substitutliste torsdag_36 for day 2024-09-05 (Thursday)
+Updating 11 substitutlister
+Updating substitutliste: test
+Updating assignments for test on Torsdag
+Found 1 available users
+Deleted 0 existing assignments
+Created 1 new assignments
+Updating substitutliste: mandag_35
+Updating assignments for mandag_35 on Mandag
+Found 2 available users
+Deleted 0 existing assignments
+Created 2 new assignments
+Updating substitutliste: fredag_36
+Updating assignments for fredag_36 on Fredag
+Found 1 available users
+Deleted 0 existing assignments
+Created 1 new assignments
+Updating substitutliste: torsdag_36
+Updating assignments for torsdag_36 on Torsdag
+Found 1 available users
+Deleted 1 existing assignments
+Created 1 new assignments
+Updating substitutliste: onsdag_36
+Updating assignments for onsdag_36 on Onsdag
+Found 2 available users
+Deleted 0 existing assignments
+Created 2 new assignments
+Updating substitutliste: tirsdag_36
+Updating assignments for tirsdag_36 on Tirsdag
+Found 2 available users
+Deleted 0 existing assignments
+Created 2 new assignments
+Updating substitutliste: mandag_36
+Updating assignments for mandag_36 on Mandag
+Found 2 available users
+Deleted 0 existing assignments
+Created 2 new assignments
+Updating substitutliste: fredag_35
+Updating assignments for fredag_35 on Fredag
+Found 1 available users
+Deleted 0 existing assignments
+Created 1 new assignments
+Updating substitutliste: Torsdag_35
+Updating assignments for Torsdag_35 on Torsdag
+Found 1 available users
+Deleted 0 existing assignments
+Created 1 new assignments
+Updating substitutliste: Onsdag_35
+Updating assignments for Onsdag_35 on Onsdag
+Found 2 available users
+Deleted 0 existing assignments
+Created 2 new assignments
+Updating substitutliste: Tirsdag_35
+Updating assignments for Tirsdag_35 on Tirsdag
+Found 2 available users
+Deleted 0 existing assignments
+Created 2 new assignments
+Finished updating substitutlister
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/admin.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/forms.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Internal Server Error: /
+Traceback (most recent call last):
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such column: club_management_day.danish_name
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/views.py", line 53, in front_page
+    responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in responsibilities}
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/models/query.py", line 398, in __iter__
+    self._fetch_all()
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/Users/philipnickel/Library/Python/3.9/lib/python/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such column: club_management_day.danish_name
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/views.py changed, reloading.
+Watching for file changes with StatReloader
+/Users/philipnickel/Documents/GitHub/Bridgehjemmeside/bridge_club_management/club_management/views.py changed, reloading.
+Watching for file changes with StatReloader

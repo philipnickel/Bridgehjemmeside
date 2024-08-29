@@ -54,7 +54,7 @@
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           <option value="">Alle dage</option>
           {% for day in days %}
-            <option value="{{ day.english_name }}">{{ day.name }}</option>
+            <option value="{{ day.name }}">{{ day.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -78,8 +78,6 @@
               data-responsible-email="{{ substitutliste.responsible_email }}">
             <td class="py-3 px-6 text-left whitespace-nowrap">
               {{ substitutliste.day_name }} ({{ substitutliste.day|date:"d-m-y" }})
-              <!-- Debug output -->
-              <small class="text-gray-500">Week: {{ substitutliste.week.id }}, Day: {{ substitutliste.day_name }}</small>
             </td>
             <td class="py-3 px-6 text-left">
               {{ substitutliste.responsible_name }}
@@ -278,7 +276,7 @@
                 const weekMatch = this.selectedWeek === '' || row.dataset.week === this.selectedWeek;
                 let dayMatch = this.selectedDay === '';
                 if (!dayMatch) {
-                    dayMatch = row.dataset.day === this.selectedDay;
+                    dayMatch = row.dataset.day.toLowerCase() === this.selectedDay.toLowerCase();
                 }
                 console.log('Week match:', weekMatch, 'Day match:', dayMatch);
                 row.style.display = weekMatch && dayMatch ? '' : 'none';
