@@ -7,6 +7,7 @@ from django.utils.dateformat import DateFormat
 import logging
 from django.db.models import Prefetch
 from django.contrib import messages
+from django.urls import reverse
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +96,8 @@ def select_substitut(request):
     if request.method == 'POST':
         list_id = request.POST.get('list_id')
         substitut_id = request.POST.get('substitut_id')
+        selected_week = request.POST.get('selected_week')
+        selected_day = request.POST.get('selected_day')
         
         try:
             assignment = UserSubstitutAssignment.objects.get(
@@ -108,6 +111,11 @@ def select_substitut(request):
         except UserSubstitutAssignment.DoesNotExist:
             messages.error(request, 'Der opstod en fejl ved valg af substitut.')
         
+        # Construct the redirect URL with query parameters
+        base_url = reverse('front_page')
+        redirect_url = f'{base_url}?week={selected_week}&day={selected_day}'
+        return redirect(redirect_url)
+    
     return redirect('front_page')
 
 def login(request):

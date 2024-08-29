@@ -35,7 +35,7 @@
       <!-- Week Selection Dropdown -->
       <div class="mb-4">
         <label for="week-selector" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
-        <select id="week-selector" x-model="selectedWeek" @change="filterSubstitutlister()"
+        <select id="week-selector" x-model="selectedWeek" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           <option value="">Alle uger</option>
           {% for week in weeks %}
@@ -47,7 +47,7 @@
       <!-- Day Selection Dropdown -->
       <div class="mb-4">
         <label for="day-selector" class="block text-lg font-medium text-gray-700">Vælg dag:</label>
-        <select id="day-selector" x-model="selectedDay" @change="filterSubstitutlister()"
+        <select id="day-selector" x-model="selectedDay" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           <option value="">Alle dage</option>
           <option value="Monday">Mandag</option>
@@ -107,6 +107,8 @@
                           {% csrf_token %}
                           <input type="hidden" name="list_id" value="{{ substitutliste.id }}">
                           <input type="hidden" name="substitut_id" value="{{ substitut.id }}">
+                          <input type="hidden" name="selected_week" x-bind:value="selectedWeek">
+                          <input type="hidden" name="selected_day" x-bind:value="selectedDay">
                           <button type="submit" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
                             Vælg
                           </button>
@@ -183,13 +185,10 @@
     <script>
       document.addEventListener('alpine:init', () => {
         Alpine.data('substitutlister', () => ({
-          selectedWeek: '',
-          selectedDay: '',
+          selectedWeek: new URLSearchParams(window.location.search).get('week') || '',
+          selectedDay: new URLSearchParams(window.location.search).get('day') || '',
           init() {
-            // Set initial values
-            this.selectedWeek = this.$el.querySelector('#week-selector option:not([value=""])').value;
-            this.selectedDay = 'Monday';
-            this.$nextTick(() => this.filterSubstitutlister());
+            this.filterSubstitutlister();
           },
           filterSubstitutlister() {
             console.log('Filtering with week:', this.selectedWeek, 'and day:', this.selectedDay);
@@ -209,6 +208,21 @@
               }
               row.style.display = weekMatch && dayMatch ? '' : 'none';
             });
+          },
+          updateUrl() {
+            const params = new URLSearchParams(window.location.search);
+            if (this.selectedWeek) {
+              params.set('week', this.selectedWeek);
+            } else {
+              params.delete('week');
+            }
+            if (this.selectedDay) {
+              params.set('day', this.selectedDay);
+            } else {
+              params.delete('day');
+            }
+            window.history.replaceState({}, '', `${window.location.pathname}?${params}`);
+            this.filterSubstitutlister();
           }
         }))
       })
