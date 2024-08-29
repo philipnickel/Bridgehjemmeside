@@ -4,8 +4,20 @@ from django.db.models import Q
 from django.utils import timezone
 import logging
 from django.utils.translation import gettext as _
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 logger = logging.getLogger(__name__)
+
+ENGLISH_TO_DANISH_DAYS = {
+    'monday': 'Mandag',
+    'tuesday': 'Tirsdag',
+    'wednesday': 'Onsdag',
+    'thursday': 'Torsdag',
+    'friday': 'Fredag',
+    'saturday': 'Lørdag',
+    'sunday': 'Søndag'
+}
 
 class Række(models.Model):
     name = models.CharField(max_length=100)
@@ -62,37 +74,61 @@ class Substitutliste(models.Model):
     day = models.DateField()
     deadline = models.DateTimeField()
 
+    class Meta:
+        verbose_name = "Substitutliste"
+        verbose_name_plural = "Substitutlister"
+
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.day}"
 
     def save(self, *args, **kwargs):
+        is_new = self._state.adding
         super().save(*args, **kwargs)
-        self.update_assignments()
+        if is_new:
+            self.update_assignments()
 
     def update_assignments(self):
-        weekday = self.day.strftime("%A")
-        logger.info(f"Updating assignments for {self.name} on {weekday}")
+        # Get the day of the week for this Substitutliste
+        day_of_week = self.day.strftime("%A")
+        logger.info(f"Updating assignments for {self.name} on {day_of_week}")
 
-        available_users = CustomUser.objects.filter(
-            Q(days_available__name=weekday) | Q(days_available__name="Any")
-        )
+        # Get all users available on this day
+        available_users = CustomUser.objects.filter(days_available__name__iexact=day_of_week)
         logger.info(f"Found {available_users.count()} available users")
+        logger.info(f"Available users: {', '.join([user.username for user in available_users])}")
 
-        # Remove existing assignments
-        deleted_count = UserSubstitutAssignment.objects.filter(substitutliste=self).delete()[0]
-        logger.info(f"Deleted {deleted_count} existing assignments")
+        # Log all days in the database
+        all_days = Day.objects.all()
+        logger.info(f"All days in database: {', '.join([day.name for day in all_days])}")
 
-        # Create new assignments
+        # Log all users and their available days
+        all_users = CustomUser.objects.all()
+        for user in all_users:
+            logger.info(f"User {user.username} available days: {', '.join([day.name for day in user.days_available.all()])}")
+
+        # Create or update assignments
         created_count = 0
+        updated_count = 0
         for user in available_users:
-            UserSubstitutAssignment.objects.create(
+            assignment, created = UserSubstitutAssignment.objects.get_or_create(
                 user=user,
                 substitutliste=self,
-                status='Ledig'
+                defaults={'status': 'Free'}
             )
-            created_count += 1
+            if created:
+                created_count += 1
+            else:
+                if assignment.status != 'Free':
+                    assignment.status = 'Free'
+                    assignment.save()
+                    updated_count += 1
+
+        # Delete assignments for users no longer available
+        deleted_count, _ = UserSubstitutAssignment.objects.filter(substitutliste=self).exclude(user__in=available_users).delete()
 
         logger.info(f"Created {created_count} new assignments")
+        logger.info(f"Updated {updated_count} existing assignments")
+        logger.info(f"Deleted {deleted_count} obsolete assignments")
 
     @property
     def day_name(self):
@@ -111,7 +147,7 @@ class UserSubstitutAssignment(models.Model):
         ('Optaget', 'Optaget'),
         ('Fraværende', 'Fraværende'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Ledig')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Free')
 
     class Meta:
         unique_together = ('user', 'substitutliste')
@@ -147,15 +183,14 @@ class Configuration(models.Model):
 
 
 class Day(models.Model):
-    name = models.CharField(_("Navn"), max_length=20)  # This will keep the existing Danish names
-    english_name = models.CharField(max_length=20, default='')
+    name = models.CharField(_("Name"), max_length=20)
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = _("Dag")
-        verbose_name_plural = _("Dage")
+        verbose_name = _("Day")
+        verbose_name_plural = _("Days")
 
 
 class DayResponsibility(models.Model):
@@ -169,3 +204,7 @@ class DayResponsibility(models.Model):
         verbose_name = "Ansvarlig for dag"
         verbose_name_plural = "Ansvarlig for dag"
 
+@receiver(post_save, sender=Substitutliste)
+def update_assignments_on_save(sender, instance, created, **kwargs):
+    if not created:
+        instance.update_assignments()

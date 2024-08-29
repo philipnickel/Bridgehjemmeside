@@ -54,7 +54,8 @@ def front_page(request):
 
     for substitutliste in substitutlister:
         substitutliste.day_of_week = substitutliste.day.strftime("%A")
-        day = Day.objects.get(english_name=substitutliste.day_of_week)
+        day_name = substitutliste.day.strftime("%A")
+        day = Day.objects.get(name=day_name)
         responsible_coordinator = responsibility_dict.get(day.name.lower())
         if responsible_coordinator:
             substitutliste.responsible_name = responsible_coordinator.get_full_name() or responsible_coordinator.username

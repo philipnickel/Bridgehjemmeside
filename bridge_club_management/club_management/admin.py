@@ -2,7 +2,7 @@ from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.contrib import admin
 from django.db.models import Q
-from .forms import CustomUserForm, SubstitutlisteForm
+from .forms import CustomUserForm
 from .models import (
     Afmeldingsliste,
     Configuration,
@@ -32,11 +32,10 @@ def update_substitutlister(modeladmin, request, queryset):
 # Inline class to manage UserSubstitutAssignment from within CustomUser and Substitutliste admin pages
 class UserSubstitutAssignmentInline(admin.TabularInline):
     model = UserSubstitutAssignment
-    extra = 1  # This controls how many empty forms are displayed by default
+    extra = 0  # This controls how many empty forms are displayed by default
 
 # Update SubstitutlisteAdmin to include the inline
 class SubstitutlisteAdmin(admin.ModelAdmin):
-    form = SubstitutlisteForm
     list_display = ['name', 'week', 'day', 'deadline']
     list_filter = ['week', 'day']
     inlines = [UserSubstitutAssignmentInline]  # Include the inline for managing assignments
