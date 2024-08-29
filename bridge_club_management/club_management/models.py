@@ -88,7 +88,7 @@ class Substitutliste(models.Model):
             UserSubstitutAssignment.objects.create(
                 user=user,
                 substitutliste=self,
-                status='Free'
+                status='Ledig'
             )
             created_count += 1
 
@@ -107,17 +107,19 @@ class UserSubstitutAssignment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     substitutliste = models.ForeignKey(Substitutliste, on_delete=models.CASCADE)
     STATUS_CHOICES = [
-        ('Free', 'Free'),
-        ('Taken', 'Taken'),
+        ('Ledig', 'Ledig'),
+        ('Optaget', 'Optaget'),
         ('Fraværende', 'Fraværende'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Free')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Ledig')
 
     class Meta:
         unique_together = ('user', 'substitutliste')
+        verbose_name = "Substitutliste tildelinger"
+        verbose_name_plural = "Substitutliste tildelinger"
 
     def __str__(self):
-        return f"{self.user} - {self.substitutliste} - {self.status}"
+        return f"{self.user} - {self.substitutliste} - {self.get_status_display()}"
 
 
 class Afmeldingsliste(models.Model):
@@ -145,15 +147,15 @@ class Configuration(models.Model):
 
 
 class Day(models.Model):
-    name = models.CharField(max_length=20)  # This will keep the existing Danish names
+    name = models.CharField(_("Navn"), max_length=20)  # This will keep the existing Danish names
     english_name = models.CharField(max_length=20, default='')
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = "Dag"
-        verbose_name_plural = "Dage"
+        verbose_name = _("Dag")
+        verbose_name_plural = _("Dage")
 
 
 class DayResponsibility(models.Model):
