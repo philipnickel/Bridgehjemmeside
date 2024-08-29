@@ -40,7 +40,7 @@ class CustomUser(AbstractUser):
     username = models.CharField(max_length=100, unique=True)
     user_type = models.CharField(max_length=20, choices=USER_TYPES)
     phone_number = models.CharField(max_length=15)
-    email = models.EmailField()
+    email = models.EmailField(null=True, blank=True)
     række = models.ForeignKey(Række, on_delete=models.SET_NULL, null=True, blank=True)
     assigned_days = models.ManyToManyField("DayResponsibility", related_name="assigned_users", blank=True)
     days_available = models.ManyToManyField("Day", related_name="available_users", blank=True)
