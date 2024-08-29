@@ -56,13 +56,15 @@
         </select>
       </div>
 
+
+
       <!-- Substitutliste Table -->
       <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
         <thead>
           <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
             <th class="py-3 px-6 text-left">Dag</th>
             <th class="py-3 px-6 text-left">Ansvarlig</th>
-            <th class="py-3 px-6 text-left">Handling</th>
+            <!-- Removed the 'Handling' column header -->
           </tr>
         </thead>
         <tbody>
@@ -74,21 +76,13 @@
               {{ substitutliste.day_of_week }} ({{ substitutliste.day|date:"d-m-y" }})
             </td>
             <td class="py-3 px-6 text-left">
-              {% with substitutliste.day.id as day_id %}
-              {% with responsibility_list|dictsort:"0"|first as first_responsibility %}
-              {% if first_responsibility.0 == day_id %}
-              {{ first_responsibility.1 }}
-              {% else %}
-              Ikke tildelt
+              {{ substitutliste.responsible_name }}
+              {% if substitutliste.responsible_email %}
+                <br>
+                <span class="text-sm text-gray-600">{{ substitutliste.responsible_email }}</span>
               {% endif %}
-              {% endwith %}
-              {% endwith %}
             </td>
-            <td class="py-3 px-6 text-left">
-              <button
-                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                onclick="selectSubstitut('{{ substitutliste.id }}', '{{ substitutliste.day|date:'Y-m-d' }}')">Vælg</button>
-            </td>
+            <!-- Removed the 'Handling' column and button -->
           </tr>
           {% endfor %}
         </tbody>

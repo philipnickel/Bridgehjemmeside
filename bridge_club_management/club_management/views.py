@@ -4,6 +4,9 @@ from django.core.mail import send_mail
 from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment, Day
 from django.contrib.auth.models import User
 from django.utils.dateformat import DateFormat
+import logging
+
+logger = logging.getLogger(__name__)
 
 def append_afbud(request, afmeldingsliste_id):
     afmeldingsliste = get_object_or_404(Afmeldingsliste, id=afmeldingsliste_id)
@@ -39,7 +42,12 @@ def front_page(request):
     weeks = Week.objects.all()
 
     # Prepare the responsibility data
-    responsibilities = DayResponsibility.objects.all()
+    responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
+    responsibility_dict = {}
+    print("DayResponsibility data:")
+    for resp in responsibilities:
+        print(f"Day: {resp.day.name}, Coordinator: {resp.coordinator.username} ({resp.coordinator.email})")
+        responsibility_dict[resp.day.name.lower()] = resp.coordinator
 
     # Debugging output to check if responsibilities and coordinators are being retrieved correctly
     responsibility_list = []
@@ -61,6 +69,42 @@ def front_page(request):
     # Add the day of the week to each substitutliste
     for substitutliste in substitutlister:
         substitutliste.day_of_week = DateFormat(substitutliste.day).format('l')
+        logger.debug(f"Substitutliste: id={substitutliste.id}, week={substitutliste.week.id}, day={substitutliste.day}, day_of_week={substitutliste.day_of_week}")
+
+    # Prepare the responsibility data
+    responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
+    responsibility_dict = {resp.day.name: resp.coordinator for resp in responsibilities}
+
+    # Add responsibility information to each substitutliste
+    for substitutliste in substitutlister:
+        substitutliste.day_of_week = DateFormat(substitutliste.day).format('l')
+        day_name = substitutliste.day_of_week
+        responsible_coordinator = responsibility_dict.get(day_name.lower())
+        print(f"Substitutliste: Day={substitutliste.day}, Day of week={day_name}, Responsible={responsible_coordinator}")
+        if responsible_coordinator:
+            substitutliste.responsible_name = responsible_coordinator.get_full_name() or responsible_coordinator.username
+            substitutliste.responsible_email = responsible_coordinator.email
+        else:
+            substitutliste.responsible_name = "Ikke tildelt"
+            substitutliste.responsible_email = ""
+
+    # Fetch all DayResponsibility objects
+    day_responsibilities = DayResponsibility.objects.select_related('day', 'coordinator')
+    
+    # Create a dictionary mapping day names to coordinators
+    responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in day_responsibilities}
+
+    # Add responsibility information to each substitutliste
+    for substitutliste in substitutlister:
+        substitutliste.day_of_week = DateFormat(substitutliste.day).format('l')
+        day_name = substitutliste.day_of_week.lower()
+        responsible_coordinator = responsibility_dict.get(day_name)
+        if responsible_coordinator:
+            substitutliste.responsible_name = responsible_coordinator.get_full_name() or responsible_coordinator.username
+            substitutliste.responsible_email = responsible_coordinator.email
+        else:
+            substitutliste.responsible_name = "Ikke tildelt"
+            substitutliste.responsible_email = ""
 
     # Pass the data to the template context
     context = {
