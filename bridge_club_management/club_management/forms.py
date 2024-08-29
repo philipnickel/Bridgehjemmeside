@@ -16,6 +16,7 @@ class CustomUserForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = [
+            "username",
             "user_type",
             "phone_number",
             "email",
