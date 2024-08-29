@@ -77,7 +77,25 @@
               data-list-id="{{ substitutliste.id }}"
               data-responsible-email="{{ substitutliste.responsible_email }}">
             <td class="py-3 px-6 text-left whitespace-nowrap">
-              {{ substitutliste.day_name }} ({{ substitutliste.day|date:"d-m-y" }})
+              {% with day_name=substitutliste.day|date:"l" %}
+                {% if day_name == 'Monday' %}Mandag
+                {% elif day_name == 'Tuesday' %}Tirsdag
+                {% elif day_name == 'Wednesday' %}Onsdag
+                {% elif day_name == 'Thursday' %}Torsdag
+                {% elif day_name == 'Friday' %}Fredag
+                {% elif day_name == 'Saturday' %}Lørdag
+                {% elif day_name == 'Sunday' %}Søndag
+                {% elif day_name == 'mandag' %}Mandag
+                {% elif day_name == 'tirsdag' %}Tirsdag
+                {% elif day_name == 'onsdag' %}Onsdag
+                {% elif day_name == 'torsdag' %}Torsdag
+                {% elif day_name == 'fredag' %}Fredag
+                {% elif day_name == 'lørdag' %}Lørdag
+                {% elif day_name == 'søndag' %}Søndag
+                {% else %}{{ day_name }}
+                {% endif %}
+              {% endwith %}
+              ({{ substitutliste.day|date:"d-m-y" }})
             </td>
             <td class="py-3 px-6 text-left">
               {{ substitutliste.responsible_name }}
@@ -271,12 +289,21 @@
           filterSubstitutlister() {
             console.log('Filtering with week:', this.selectedWeek, 'and day:', this.selectedDay);
             const rows = document.querySelectorAll('[data-week][data-day]');
+            const dayMap = {
+                'Mandag': 'Monday',
+                'Tirsdag': 'Tuesday',
+                'Onsdag': 'Wednesday',
+                'Torsdag': 'Thursday',
+                'Fredag': 'Friday',
+                'Lørdag': 'Saturday',
+                'Søndag': 'Sunday'
+            };
             rows.forEach(row => {
                 console.log('Row data:', row.dataset);
                 const weekMatch = this.selectedWeek === '' || row.dataset.week === this.selectedWeek;
                 let dayMatch = this.selectedDay === '';
                 if (!dayMatch) {
-                    dayMatch = row.dataset.day.toLowerCase() === this.selectedDay.toLowerCase();
+                    dayMatch = row.dataset.day === dayMap[this.selectedDay] || row.dataset.day === this.selectedDay;
                 }
                 console.log('Week match:', weekMatch, 'Day match:', dayMatch);
                 row.style.display = weekMatch && dayMatch ? '' : 'none';
