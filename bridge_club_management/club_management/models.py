@@ -88,42 +88,36 @@ class Substitutliste(models.Model):
             self.update_assignments()
 
     def update_assignments(self):
-        # Get the day of the week for this Substitutliste
         day_of_week = self.day.strftime("%A")
         logger.info(f"Updating assignments for {self.name} on {day_of_week}")
 
-        # Get all users available on this day
         available_users = CustomUser.objects.filter(days_available__name__iexact=day_of_week)
         logger.info(f"Found {available_users.count()} available users")
         logger.info(f"Available users: {', '.join([user.username for user in available_users])}")
 
-        # Log all days in the database
         all_days = Day.objects.all()
         logger.info(f"All days in database: {', '.join([day.name for day in all_days])}")
 
-        # Log all users and their available days
         all_users = CustomUser.objects.all()
         for user in all_users:
             logger.info(f"User {user.username} available days: {', '.join([day.name for day in user.days_available.all()])}")
 
-        # Create or update assignments
         created_count = 0
         updated_count = 0
         for user in available_users:
             assignment, created = UserSubstitutAssignment.objects.get_or_create(
                 user=user,
                 substitutliste=self,
-                defaults={'status': 'Free'}
+                defaults={'status': 'Ledig'}
             )
             if created:
                 created_count += 1
             else:
-                if assignment.status != 'Free':
-                    assignment.status = 'Free'
+                if assignment.status != 'Ledig':
+                    assignment.status = 'Ledig'
                     assignment.save()
                     updated_count += 1
 
-        # Delete assignments for users no longer available
         deleted_count, _ = UserSubstitutAssignment.objects.filter(substitutliste=self).exclude(user__in=available_users).delete()
 
         logger.info(f"Created {created_count} new assignments")
@@ -147,7 +141,7 @@ class UserSubstitutAssignment(models.Model):
         ('Optaget', 'Optaget'),
         ('Fraværende', 'Fraværende'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Free')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Ledig')
 
     class Meta:
         unique_together = ('user', 'substitutliste')
