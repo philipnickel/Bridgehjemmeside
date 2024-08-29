@@ -114,10 +114,10 @@
                     <li class="mb-4 p-2 border rounded">
                       <strong>{{ substitut.name }}</strong><br>
                       <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
+                      <span class="text-sm">Status: {{ substitut.status }}</span><br>
                       {% if substitut.note %}
-                        <span class="text-sm italic">Note: {{ substitut.note }}</span><br>
+                        <span class="text-sm">Note: {{ substitut.note }}</span>
                       {% endif %}
-                      <span class="text-sm font-semibold">Status: {{ substitut.status }}</span><br>
                       {% now "Y-m-d H:i:s" as current_datetime %}
                       {% if current_datetime > substitutliste.deadline|date:"Y-m-d H:i:s" %}
                         <div class="mt-2 bg-red-100 border border-red-400 text-red-700 px-2 py-1 rounded text-sm" role="alert">
