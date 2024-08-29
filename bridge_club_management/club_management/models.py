@@ -87,7 +87,12 @@ class Substitutliste(models.Model):
 class UserSubstitutAssignment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     substitutliste = models.ForeignKey(Substitutliste, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=[('Free', 'Free'), ('Taken', 'Taken')], default='Free')
+    STATUS_CHOICES = [
+        ('Free', 'Free'),
+        ('Taken', 'Taken'),
+        ('Fraværende', 'Fraværende'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Free')
 
     class Meta:
         unique_together = ('user', 'substitutliste')
