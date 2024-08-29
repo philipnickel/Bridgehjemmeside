@@ -1,11 +1,15 @@
-from django.contrib.auth.models import AbstractUser, User
 from django.db import models
 from django.db.models import Q
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser, User
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 import logging
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
+
+CustomUser = get_user_model()
 
 class Række(models.Model):
     name = models.CharField(max_length=100)
@@ -25,9 +29,9 @@ class UnavailableDay(models.Model):
 
 class CustomUser(AbstractUser):
     USER_TYPES = (("Substitutter", "Substitutter"),)
-    username = models.CharField(max_length=100, unique=True)
+
     user_type = models.CharField(max_length=20, choices=USER_TYPES)
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField()
     række = models.ForeignKey(Række, on_delete=models.SET_NULL, null=True, blank=True)
     assigned_days = models.ManyToManyField("DayResponsibility", related_name="assigned_users", blank=True)
@@ -73,13 +77,24 @@ class Substitutliste(models.Model):
         weekday = self.day.strftime("%A")
         logger.info(f"Updating assignments for {self.name} on {weekday}")
 
+        # Get the Danish name for the weekday
+        danish_weekday = {
+            'Monday': 'Mandag',
+            'Tuesday': 'Tirsdag',
+            'Wednesday': 'Onsdag',
+            'Thursday': 'Torsdag',
+            'Friday': 'Fredag',
+            'Saturday': 'Lørdag',
+            'Sunday': 'Søndag'
+        }.get(weekday, weekday)
+
         available_users = CustomUser.objects.filter(
-            Q(days_available__name=weekday) | Q(days_available__name="Any")
+            Q(days_available__name=danish_weekday) | Q(days_available__name="Alle")
         )
         logger.info(f"Found {available_users.count()} available users")
 
         # Remove existing assignments
-        deleted_count = UserSubstitutAssignment.objects.filter(substitutliste=self).delete()[0]
+        deleted_count, _ = UserSubstitutAssignment.objects.filter(substitutliste=self).delete()
         logger.info(f"Deleted {deleted_count} existing assignments")
 
         # Create new assignments
@@ -107,19 +122,17 @@ class UserSubstitutAssignment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     substitutliste = models.ForeignKey(Substitutliste, on_delete=models.CASCADE)
     STATUS_CHOICES = [
-        ('Ledig', 'Ledig'),
-        ('Optaget', 'Optaget'),
+        ('Free', 'Free'),
+        ('Taken', 'Taken'),
         ('Fraværende', 'Fraværende'),
     ]
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Ledig')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Free')
 
     class Meta:
         unique_together = ('user', 'substitutliste')
-        verbose_name = "Substitutliste tildelinger"
-        verbose_name_plural = "Substitutliste tildelinger"
 
     def __str__(self):
-        return f"{self.user} - {self.substitutliste} - {self.get_status_display()}"
+        return f"{self.user} - {self.substitutliste} - {self.status}"
 
 
 class Afmeldingsliste(models.Model):
@@ -147,15 +160,15 @@ class Configuration(models.Model):
 
 
 class Day(models.Model):
-    name = models.CharField(_("Navn"), max_length=20)  # This will keep the existing Danish names
+    name = models.CharField(max_length=20, verbose_name='Navn')
     english_name = models.CharField(max_length=20, default='')
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = _("Dag")
-        verbose_name_plural = _("Dage")
+        verbose_name = "Dag"
+        verbose_name_plural = "Dage"
 
 
 class DayResponsibility(models.Model):
@@ -168,4 +181,3 @@ class DayResponsibility(models.Model):
     class Meta:
         verbose_name = "Ansvarlig for dag"
         verbose_name_plural = "Ansvarlig for dag"
-

@@ -1,6 +1,7 @@
 from bootstrap_datepicker_plus.widgets import DatePickerInput
 from django import forms
 from django.db.models import Q
+from django.forms import DateInput
 
 from .models import CustomUser, Day, Substitutliste, Række, UnavailableDay
 
@@ -16,7 +17,6 @@ class CustomUserForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = [
-            "username",
             "user_type",
             "phone_number",
             "email",
@@ -32,28 +32,32 @@ class CustomUserModelMultipleChoiceField(forms.ModelMultipleChoiceField):
 
 
 class SubstitutlisteForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['day'].widget = forms.DateInput(attrs={'type': 'date'})
+    day = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        input_formats=['%Y-%m-%d']
+    )
+    deadline = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+        input_formats=['%Y-%m-%dT%H:%M']
+    )
 
     class Meta:
         model = Substitutliste
         fields = "__all__"
-        widgets = {
-            'week': forms.Select(attrs={'class': 'form-control'}),
-            'deadline': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-        }
 
-    def clean_day(self):
-        day = self.cleaned_data['day']
-        danish_weekdays = {
-            'Monday': 'Mandag',
-            'Tuesday': 'Tirsdag',
-            'Wednesday': 'Onsdag',
-            'Thursday': 'Torsdag',
-            'Friday': 'Fredag',
-            'Saturday': 'Lørdag',
-            'Sunday': 'Søndag'
-        }
-        weekday = day.strftime("%A")
-        return danish_weekdays.get(weekday, weekday)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['day'].initial = self.instance.day
+            if self.instance.deadline:
+                self.fields['deadline'].initial = self.instance.deadline.strftime('%Y-%m-%dT%H:%M')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        day = cleaned_data.get('day')
+        deadline = cleaned_data.get('deadline')
+
+        if day and deadline and day < deadline.date():
+            raise forms.ValidationError(_("The deadline cannot be after the day."))
+
+        return cleaned_data

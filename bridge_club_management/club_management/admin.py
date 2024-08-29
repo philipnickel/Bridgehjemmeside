@@ -42,9 +42,17 @@ class SubstitutlisteAdmin(admin.ModelAdmin):
     inlines = [UserSubstitutAssignmentInline]  # Include the inline for managing assignments
     actions = [update_substitutlister]
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        if obj:
+            form.base_fields['day'].initial = obj.day
+            if obj.deadline:
+                form.base_fields['deadline'].initial = obj.deadline.strftime('%Y-%m-%dT%H:%M')
+        return form
+
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
-        logger.info(f"Saved Substitutliste {obj.name} for day {obj.day} ({obj.day})")
+        logger.info(f"Saved Substitutliste {obj.name} for day {obj.day} with deadline {obj.deadline}")
 
 # Update AfmeldingslisteAdmin to display relevant fields
 class AfmeldingslisteAdmin(admin.ModelAdmin):
