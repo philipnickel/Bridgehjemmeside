@@ -74,7 +74,8 @@ def front_page(request):
                 'phone': assignment.user.phone_number,
                 'note': assignment.user.custom_note,
                 'email': assignment.user.email,
-                'id': assignment.user.id
+                'id': assignment.user.id,
+                'status': assignment.status  # Add this line to include the status
             }
             for assignment in getattr(substitutliste, 'assignments', [])
         ]
