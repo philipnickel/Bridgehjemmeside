@@ -6,23 +6,28 @@ from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayRes
 from django.contrib.auth.models import User
 
 
+
 def append_afbud(request, afmeldingsliste_id):
     afmeldingsliste = get_object_or_404(Afmeldingsliste, id=afmeldingsliste_id)
 
     if request.method == 'POST':
-        afbud_name = request.POST.get('afbud_name').strip()
-        
-        if afbud_name:
-            # Append the new name to the existing 'afbud' field
-            if afmeldingsliste.afbud and not afmeldingsliste.afbud.endswith('\n'):
-                afmeldingsliste.afbud += '\n'
-            afmeldingsliste.afbud += ', ' + afbud_name
+        afbud_name = request.POST.get('afbud_name', '').strip()
 
-            # Save the updated Afmeldingsliste
+        if afbud_name:
+            if afmeldingsliste.afbud:
+                afmeldingsliste.afbud += ', ' + afbud_name
+            else:
+                afmeldingsliste.afbud = afbud_name
+
             afmeldingsliste.save()
-    
-    # Redirect back to the front page or wherever appropriate
-    return redirect('front_page')
+            return redirect('front_page')
+        else:
+            # Pass an error message to the template
+            context = {
+                'afmeldingsliste': afmeldingsliste,
+                'error_message': 'Navnet kan ikke være tomt. Prøv igen.'
+            }
+            return render(request, 'front_page.html', context)
 
 
 def front_page(request):
@@ -45,6 +50,16 @@ def front_page(request):
         responsibility_list.append((res.day.id, coordinator_email))
         print(f"Day: {res.day.name}, Coordinator: {coordinator_email}")
 
+   
+# Prepare assignments list
+    assignments = UserSubstitutAssignment.objects.select_related('substitutliste', 'user')
+    assignments_by_substitutliste = {}
+
+    for substitutliste in substitutlister:
+        assignments_by_substitutliste[substitutliste.id] = []
+    
+    for assignment in assignments:
+        assignments_by_substitutliste[assignment.substitutliste.id].append(assignment)
     # Pass the data to the template context
     context = {
         'substitutlister': substitutlister,
@@ -52,10 +67,11 @@ def front_page(request):
         'weeks': weeks,
         'welcome_text': welcome_text,
         'responsibility_list': responsibility_list,
+
+        'assignments_by_substitutliste': assignments_by_substitutliste
     }
 
     return render(request, 'front_page.html', context)
-
 
 def select_substitut(request):
     if request.method == 'POST':
