@@ -139,18 +139,25 @@
           <p class="mb-1"><strong>Frist:</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
           <p class="mb-1"><strong>Afbud:</strong> {{ afmeldingsliste.afbud }}</p>
 
-          <!-- Form to Append Afbud -->
-          <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
-            {% csrf_token %}
-            <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
-            <input type="text" id="afbud-name" name="afbud_name"
-              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Indtast navn">
-            <button type="submit"
-              class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-              Meld Afbud
-            </button>
-          </form>
+          {% now "Y-m-d H:i:s" as current_datetime %}
+          {% if current_datetime > afmeldingsliste.deadline|date:"Y-m-d H:i:s" %}
+            <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+              <strong class="font-bold">Frist overskredet</strong>
+            </div>
+          {% else %}
+            <!-- Form to Append Afbud -->
+            <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
+              {% csrf_token %}
+              <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
+              <input type="text" id="afbud-name" name="afbud_name"
+                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                placeholder="Indtast navn">
+              <button type="submit"
+                class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                Meld Afbud
+              </button>
+            </form>
+          {% endif %}
         </li>
         {% endfor %}
       </ul>
