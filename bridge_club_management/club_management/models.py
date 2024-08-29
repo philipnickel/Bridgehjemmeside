@@ -89,6 +89,7 @@ class UserSubstitutAssignment(models.Model):
     STATUS_CHOICES = [
         ('Free', 'Free'),
         ('Taken', 'Taken'),
+        ('Fraværende', 'Fraværende')
     ]
 
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='substitut_assignments')

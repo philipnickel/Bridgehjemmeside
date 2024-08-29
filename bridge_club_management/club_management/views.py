@@ -1,11 +1,9 @@
-
 # views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail
-from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment
+from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment, Day
 from django.contrib.auth.models import User
-
-
+from django.utils.dateformat import DateFormat
 
 def append_afbud(request, afmeldingsliste_id):
     afmeldingsliste = get_object_or_404(Afmeldingsliste, id=afmeldingsliste_id)
@@ -60,6 +58,10 @@ def front_page(request):
     
     for assignment in assignments:
         assignments_by_substitutliste[assignment.substitutliste.id].append(assignment)
+    # Add the day of the week to each substitutliste
+    for substitutliste in substitutlister:
+        substitutliste.day_of_week = DateFormat(substitutliste.day).format('l')
+
     # Pass the data to the template context
     context = {
         'substitutlister': substitutlister,
@@ -68,7 +70,8 @@ def front_page(request):
         'welcome_text': welcome_text,
         'responsibility_list': responsibility_list,
 
-        'assignments_by_substitutliste': assignments_by_substitutliste
+        'assignments_by_substitutliste': assignments_by_substitutliste,
+        'days': Day.objects.all(),
     }
 
     return render(request, 'front_page.html', context)
