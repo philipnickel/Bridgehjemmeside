@@ -2,12 +2,13 @@ from bootstrap_datepicker_plus.widgets import DatePickerInput
 from django import forms
 from django.db.models import Q
 
-from .models import CustomUser, Day, Substitutliste
+from .models import CustomUser, Day, Substitutliste, Række, UnavailableDay
 
 
 class CustomUserForm(forms.ModelForm):
+    username = forms.CharField(max_length=150, label="Username")  # Include the username field
     days_available = forms.ModelMultipleChoiceField(
-        queryset=Day.objects.all(),
+        queryset=Day.objects.exclude(name__in=["Saturday", "Sunday"]),
         widget=forms.CheckboxSelectMultiple,
         required=False,
         label="Days Available",
@@ -16,12 +17,13 @@ class CustomUserForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = [
+            "username",
             "user_type",
             "phone_number",
             "email",
-            "row",
+            "række",
             "days_available",
-            "days_unavailable",
+            "custom_note"
         ]
 
 
