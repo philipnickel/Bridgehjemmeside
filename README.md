@@ -7,6 +7,9 @@ Skal oprettes i admin-delen af hjemmesiden under 'Godkendelse og Autorisation'.
 Sker i admin-delen af hjemmesiden under 'Substitutter' -> 'Tilføj Substitutter'.
 Obs: De bliver ikke automatisk sat på allerede eksisterende substitutlister. (Hvis dette ønskes, skal substitutlisterne opdateres) - Kan gøre hurtigt fra 'Substitutlister'->Markér alle -> Handling -> opdatér valgte -> Udfør 
 
+## Angiv ferie/fravær for substitutter
+Gøres ved at gå ind på pågældende substitut i admin-delen og ændre status på hver enkelt substitutliste-tildeling, der vises. 
+
 ## Oprettelse af Substitutlister og uger
 Der bliver lavet et automatisk 'tjek' hver aften, hvor det sikres, at kun den aktuelle uge vises og alle uger har tilhørende substitutlister.
 
