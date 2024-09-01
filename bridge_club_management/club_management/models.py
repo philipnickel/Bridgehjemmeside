@@ -142,6 +142,7 @@ class UserSubstitutAssignment(models.Model):
         ('Fraværende', 'Fraværende'),
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Ledig')
+    reservationsnote = models.TextField(blank=True, null=True)  # Add this line
 
     class Meta:
         unique_together = ('user', 'substitutliste')
