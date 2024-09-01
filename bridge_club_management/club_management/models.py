@@ -103,7 +103,6 @@ class Substitutliste(models.Model):
             logger.info(f"User {user.username} available days: {', '.join([day.name for day in user.days_available.all()])}")
 
         created_count = 0
-        updated_count = 0
         for user in available_users:
             assignment, created = UserSubstitutAssignment.objects.get_or_create(
                 user=user,
@@ -112,17 +111,8 @@ class Substitutliste(models.Model):
             )
             if created:
                 created_count += 1
-            else:
-                if assignment.status != 'Ledig':
-                    assignment.status = 'Ledig'
-                    assignment.save()
-                    updated_count += 1
-
-        deleted_count, _ = UserSubstitutAssignment.objects.filter(substitutliste=self).exclude(user__in=available_users).delete()
 
         logger.info(f"Created {created_count} new assignments")
-        logger.info(f"Updated {updated_count} existing assignments")
-        logger.info(f"Deleted {deleted_count} obsolete assignments")
 
     @property
     def day_name(self):
