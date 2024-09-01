@@ -71,7 +71,8 @@ def front_page(request):
                 'note': assignment.user.custom_note,
                 'email': assignment.user.email,
                 'id': assignment.user.id,
-                'status': assignment.get_status_display()  # This will use the Danish display name
+                'status': assignment.get_status_display(),  # This will use the Danish display name
+                'reservationsnote': assignment.reservationsnote
             }
             for assignment in substitutliste.assignments
         ]
@@ -102,6 +103,7 @@ def select_substitut(request):
                 user_id=substitut_id
             )
             assignment.status = 'Optaget'
+            assignment.reservationsnote = f"Navn: {name}, Email: {email}, Telefon: {phone}"
             assignment.save()
             
             substitutliste = get_object_or_404(Substitutliste, id=list_id)
