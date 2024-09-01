@@ -48,6 +48,7 @@ def front_page(request):
     ).all()
     afmeldingslister = Afmeldingsliste.objects.all()
     weeks = Week.objects.all()
+    weeks = sorted(weeks, key=lambda week: int(week.name))  # Sort weeks by numeric value of name
 
     responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
     responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in responsibilities}
