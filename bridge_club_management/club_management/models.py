@@ -20,7 +20,7 @@ ENGLISH_TO_DANISH_DAYS = {
 }
 
 class Række(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(verbose_name=_("Navn"),max_length=100)
 
     def __str__(self):
         return self.name
@@ -37,14 +37,14 @@ class UnavailableDay(models.Model):
 
 class CustomUser(AbstractUser):
     USER_TYPES = (("Substitutter", "Substitutter"),)
-    username = models.CharField(max_length=100, unique=True)
-    user_type = models.CharField(max_length=20, choices=USER_TYPES)
-    phone_number = models.CharField(max_length=15)
-    email = models.EmailField(null=True, blank=True)
+    username = models.CharField(_("Brugernavn"),max_length=100, unique=True)
+    user_type = models.CharField(_("Brugertype"),max_length=20, choices=USER_TYPES)
+    phone_number = models.CharField(_("Telefonnummer"),max_length=15)
+    email = models.EmailField(_("Email"),null=True, blank=True)
     række = models.ForeignKey(Række, on_delete=models.SET_NULL, null=True, blank=True)
     assigned_days = models.ManyToManyField("DayResponsibility", related_name="assigned_users", blank=True)
     days_available = models.ManyToManyField("Day", related_name="available_users", blank=True)
-    custom_note = models.TextField(blank=True, null=True, help_text="Enter a custom note for the user.")
+    custom_note = models.TextField(_("Note til substitut"),blank=True, null=True, help_text="Note til substitut (Vises på forsiden).")
     
     groups = None
     user_permissions = None
@@ -58,7 +58,7 @@ class CustomUser(AbstractUser):
 
 
 class Week(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(verbose_name=_("Ugenummer"),max_length=100)
 
     def __str__(self):
         return self.name
@@ -69,10 +69,10 @@ class Week(models.Model):
 
 
 class Substitutliste(models.Model):
-    name = models.CharField(max_length=100, default="unknown")
-    week = models.ForeignKey(Week, on_delete=models.CASCADE)
-    day = models.DateField()
-    deadline = models.DateTimeField()
+    name = models.CharField(verbose_name=_("Navn"),max_length=100, default="unknown")
+    week = models.ForeignKey(Week, verbose_name=_("Uge"), on_delete=models.CASCADE)
+    day = models.DateField(verbose_name=_("Dag"))
+    deadline = models.DateTimeField(verbose_name=_("Deadline"))
 
     class Meta:
         verbose_name = "Substitutliste"
@@ -124,7 +124,7 @@ class Substitutliste(models.Model):
 
 
 class UserSubstitutAssignment(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(verbose_name=_("Substitut"),to=CustomUser, on_delete=models.CASCADE)
     substitutliste = models.ForeignKey(Substitutliste, on_delete=models.CASCADE)
     STATUS_CHOICES = [
         ('Ledig', 'Ledig'),
@@ -144,9 +144,9 @@ class UserSubstitutAssignment(models.Model):
 
 
 class Afmeldingsliste(models.Model):
-    name = models.CharField(max_length=100, default="unknown")
-    week = models.ForeignKey(Week, on_delete=models.CASCADE)
-    day = models.DateField()
+    name = models.CharField(_("Navn"),max_length=100, default="unknown")
+    week = models.ForeignKey(Week, verbose_name=_("Uge"), on_delete=models.CASCADE)
+    day = models.DateField(_("Dag"))
     deadline = models.DateTimeField()
     afbud = models.TextField(default="Afbud")
 
@@ -156,8 +156,8 @@ class Afmeldingsliste(models.Model):
 
 
 class Configuration(models.Model):
-    welcome_text = models.TextField()
-    name = models.CharField(max_length=100, default="Forsidetekst")
+    welcome_text = models.TextField(verbose_name=_("Velkomsttekst"))
+    name = models.CharField(verbose_name=_("Navn"),max_length=100, default="Forsidetekst")
 
     def __str__(self):
         return f"Velkomsttekst"
@@ -179,8 +179,8 @@ class Day(models.Model):
 
 
 class DayResponsibility(models.Model):
-    day = models.ForeignKey(Day, on_delete=models.CASCADE)
-    coordinator = models.ForeignKey(User, on_delete=models.CASCADE)
+    day = models.ForeignKey(Day, verbose_name=_("Dag"), on_delete=models.CASCADE)
+    coordinator = models.ForeignKey(User, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.day}: {self.coordinator}"

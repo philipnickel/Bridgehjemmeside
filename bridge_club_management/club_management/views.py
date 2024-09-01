@@ -48,6 +48,18 @@ def front_page(request):
     ).all()
     afmeldingslister = Afmeldingsliste.objects.all()
     weeks = Week.objects.all()
+    weeks = sorted(weeks, key=lambda week: int(week.name))  # Sort weeks by numeric value of name
+
+    # Mapping of English day names to Danish day names
+    day_name_mapping = {
+        'Monday': 'Mandag',
+        'Tuesday': 'Tirsdag',
+        'Wednesday': 'Onsdag',
+        'Thursday': 'Torsdag',
+        'Friday': 'Fredag',
+        'Saturday': 'Lørdag',
+        'Sunday': 'Søndag'
+    }
 
     responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
     responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in responsibilities}
@@ -83,6 +95,7 @@ def front_page(request):
         'weeks': weeks,
         'welcome_text': welcome_text,
         'days': Day.objects.all(),
+        'day_name_mapping': day_name_mapping,  # Pass the mapping to the template
     }
 
     return render(request, 'front_page.html', context)
