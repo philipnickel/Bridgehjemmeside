@@ -118,10 +118,13 @@
                       <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
                       <span class="text-sm">Status: {{ substitut.status }}</span><br>
                       {% if substitut.note %}
-                        <span class="text-sm">Note: {{ substitut.note }}</span>
+                        <span class="text-sm">Note: {{ substitut.note }}</span><br>
                       {% endif %}
                       {% if substitut.status == 'Optaget' %}
-                        <span class="text-sm">Reservationsnote: {{ substitut.reservationsnote }}</span>
+                        <span class="text-sm">
+                          Reservationsnote:<br>
+                          &nbsp;&nbsp;{{ substitut.reservationsnote|linebreaksbr }}
+                        </span>
                       {% endif %}
                       {% now "Y-m-d H:i:s" as current_datetime %}
                       {% if current_datetime > substitutliste.deadline|date:"Y-m-d H:i:s" %}
