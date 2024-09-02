@@ -84,7 +84,8 @@ def front_page(request):
                 'email': assignment.user.email,
                 'id': assignment.user.id,
                 'status': assignment.get_status_display(),  # This will use the Danish display name
-                'reservationsnote': assignment.reservationsnote
+                'reservationsnote': assignment.reservationsnote,
+                'række': assignment.user.række.name if assignment.user.række else 'N/A'  # Add this line
             }
             for assignment in substitutliste.assignments
         ]
