@@ -123,8 +123,8 @@
                       {% endif %}
                       {% if substitut.status == 'Optaget' %}
                         <span class="text-sm">
-                          Reservationsnote:<br>
-                          &nbsp;&nbsp;{{ substitut.reservationsnote|linebreaksbr }}
+                          Substitut:<br>
+                          &nbsp;&nbsp;{{ substitut.reservationsnote|split_reservationsnote|safe }}
                         </span>
                       {% endif %}
                       {% now "Y-m-d H:i:s" as current_datetime %}
