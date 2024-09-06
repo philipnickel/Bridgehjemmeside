@@ -24,6 +24,7 @@ urlpatterns = [
     path('', views.front_page, name='front_page'),  # Update this line
     path('select_substitut/', views.select_substitut, name='select_substitut'),
     path('login/', views.login, name='login'),
+    path("ckeditor5/", include('django_ckeditor_5.urls')),
     path('append-afbud/<int:afmeldingsliste_id>/', views.append_afbud, name='append_afbud'),
     path('afmeldingsliste/<int:afmeldingsliste_id>/', views.afmeldingsliste_detail, name='afmeldingsliste_detail'),
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -11,6 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
     [x-cloak] { display: none !important; }
+    .ck-content ul, .text-lg ul { list-style-type: disc; padding-left: 2em; }
+    .ck-content ol, .text-lg ol { list-style-type: decimal; padding-left: 2em; }
+    .ck-content li, .text-lg li { display: list-item; }
   </style>
 </head>
 
@@ -28,7 +31,7 @@
     <!-- Jumbotron with Welcome Text -->
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
       <h1 class="text-4xl font-bold mb-4">Velkommen!</h1>
-      <p class="text-lg">{{ welcome_text|safe }}</p>
+      <div class="text-lg ck-content">{{ welcome_text|safe }}</div>
     </div>
 
     {% load custom_filters %}
