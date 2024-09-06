@@ -1,4 +1,4 @@
-from ckeditor.widgets import CKEditorWidget
+from django_ckeditor_5.widgets import CKEditor5Widget
 from django import forms
 from django.contrib import admin
 from django.db.models import Q
@@ -67,7 +67,7 @@ class ConfigurationAdminForm(forms.ModelForm):
         model = Configuration
         fields = "__all__"
         widgets = {
-            "welcome_text": CKEditorWidget(),
+            "welcome_text": CKEditor5Widget(config_name='extends'),
         }
 
 # ConfigurationAdmin to manage site configurations

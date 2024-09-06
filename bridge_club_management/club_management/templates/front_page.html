@@ -11,6 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
     [x-cloak] { display: none !important; }
+    .ck-content ul, .text-lg ul { list-style-type: disc; padding-left: 2em; }
+    .ck-content ol, .text-lg ol { list-style-type: decimal; padding-left: 2em; }
+    .ck-content li, .text-lg li { display: list-item; }
   </style>
 </head>
 
@@ -28,7 +31,7 @@
     <!-- Jumbotron with Welcome Text -->
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
       <h1 class="text-4xl font-bold mb-4">Velkommen!</h1>
-      <p class="text-lg">{{ welcome_text|safe }}</p>
+      <div class="text-lg ck-content">{{ welcome_text|safe }}</div>
     </div>
 
     {% load custom_filters %}
@@ -42,9 +45,8 @@
         <label for="week-selector" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
         <select id="week-selector" x-model="selectedWeek" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          <option value="">Alle uger</option>
           {% for week in weeks|dictsort:"name" %}
-          <option value="{{ week.id }}">{{ week.name }}</option>
+          <option value="{{ week.id }}" {% if forloop.first %}selected{% endif %}>{{ week.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -54,9 +56,8 @@
         <label for="day-selector" class="block text-lg font-medium text-gray-700">Vælg dag:</label>
         <select id="day-selector" x-model="selectedDay" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          <option value="">Alle dage</option>
           {% for day in days %}
-            <option value="{{ day.name }}">{{ day.name|translate_day:day_name_mapping }}</option>
+            <option value="{{ day.name }}" {% if forloop.first %}selected{% endif %}>{{ day.name|translate_day:day_name_mapping }}</option>
           {% endfor %}
         </select>
       </div>
@@ -123,8 +124,8 @@
                       {% endif %}
                       {% if substitut.status == 'Optaget' %}
                         <span class="text-sm">
-                          Reservationsnote:<br>
-                          &nbsp;&nbsp;{{ substitut.reservationsnote|linebreaksbr }}
+                          Substitut:<br>
+                          &nbsp;&nbsp;{{ substitut.reservationsnote|split_reservationsnote|safe }}
                         </span>
                       {% endif %}
                       {% now "Y-m-d H:i:s" as current_datetime %}
@@ -290,10 +291,11 @@
         Alpine.data('substitutlister', () => ({
           modalOpen: false,
           confirmationModalOpen: false,
-          selectedWeek: new URLSearchParams(window.location.search).get('week') || '',
-          selectedDay: new URLSearchParams(window.location.search).get('day') || '',
+          selectedWeek: new URLSearchParams(window.location.search).get('week') || '{{ weeks.0.id }}',
+          selectedDay: new URLSearchParams(window.location.search).get('day') || '{{ days.0.name }}',
           init() {
             this.filterSubstitutlister();
+            this.updateUrl();
           },
           filterSubstitutlister() {
             console.log('Filtering with week:', this.selectedWeek, 'and day:', this.selectedDay);
