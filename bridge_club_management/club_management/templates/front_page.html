@@ -45,9 +45,8 @@
         <label for="week-selector" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
         <select id="week-selector" x-model="selectedWeek" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          <option value="">Alle uger</option>
           {% for week in weeks|dictsort:"name" %}
-          <option value="{{ week.id }}">{{ week.name }}</option>
+          <option value="{{ week.id }}" {% if forloop.first %}selected{% endif %}>{{ week.name }}</option>
           {% endfor %}
         </select>
       </div>
@@ -57,9 +56,8 @@
         <label for="day-selector" class="block text-lg font-medium text-gray-700">Vælg dag:</label>
         <select id="day-selector" x-model="selectedDay" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          <option value="">Alle dage</option>
           {% for day in days %}
-            <option value="{{ day.name }}">{{ day.name|translate_day:day_name_mapping }}</option>
+            <option value="{{ day.name }}" {% if forloop.first %}selected{% endif %}>{{ day.name|translate_day:day_name_mapping }}</option>
           {% endfor %}
         </select>
       </div>
@@ -293,10 +291,11 @@
         Alpine.data('substitutlister', () => ({
           modalOpen: false,
           confirmationModalOpen: false,
-          selectedWeek: new URLSearchParams(window.location.search).get('week') || '',
-          selectedDay: new URLSearchParams(window.location.search).get('day') || '',
+          selectedWeek: new URLSearchParams(window.location.search).get('week') || '{{ weeks.0.id }}',
+          selectedDay: new URLSearchParams(window.location.search).get('day') || '{{ days.0.name }}',
           init() {
             this.filterSubstitutlister();
+            this.updateUrl();
           },
           filterSubstitutlister() {
             console.log('Filtering with week:', this.selectedWeek, 'and day:', this.selectedDay);
