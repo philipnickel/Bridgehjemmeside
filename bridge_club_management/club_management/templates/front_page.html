@@ -10,10 +10,26 @@
   <!-- Include Alpine.js for interactivity -->
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
-    [x-cloak] { display: none !important; }
-    .ck-content ul, .text-lg ul { list-style-type: disc; padding-left: 2em; }
-    .ck-content ol, .text-lg ol { list-style-type: decimal; padding-left: 2em; }
-    .ck-content li, .text-lg li { display: list-item; }
+    [x-cloak] {
+      display: none !important;
+    }
+
+    .ck-content ul,
+    .text-lg ul {
+      list-style-type: disc;
+      padding-left: 2em;
+    }
+
+    .ck-content ol,
+    .text-lg ol {
+      list-style-type: decimal;
+      padding-left: 2em;
+    }
+
+    .ck-content li,
+    .text-lg li {
+      display: list-item;
+    }
   </style>
 </head>
 
@@ -57,7 +73,8 @@
         <select id="day-selector" x-model="selectedDay" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           {% for day in days %}
-            <option value="{{ day.name }}" {% if forloop.first %}selected{% endif %}>{{ day.name|translate_day:day_name_mapping }}</option>
+          <option value="{{ day.name }}" {% if forloop.first %}selected{% endif %}>{{
+            day.name|translate_day:day_name_mapping }}</option>
           {% endfor %}
         </select>
       </div>
@@ -74,37 +91,35 @@
         </thead>
         <tbody>
           {% for substitutliste in substitutlister %}
-          <tr class="border-b border-gray-200 hover:bg-gray-100"
-              data-week="{{ substitutliste.week.id }}"
-              data-day="{{ substitutliste.day_name }}"
-              data-list-id="{{ substitutliste.id }}"
-              data-responsible-email="{{ substitutliste.responsible_email }}">
+          <tr class="border-b border-gray-200 hover:bg-gray-100" data-week="{{ substitutliste.week.id }}"
+            data-day="{{ substitutliste.day_name }}" data-list-id="{{ substitutliste.id }}"
+            data-responsible-email="{{ substitutliste.responsible_email }}">
             <td class="py-3 px-6 text-left whitespace-nowrap">
               {% with day_name=substitutliste.day|date:"l" %}
-                {% if day_name == 'Monday' %}Mandag
-                {% elif day_name == 'Tuesday' %}Tirsdag
-                {% elif day_name == 'Wednesday' %}Onsdag
-                {% elif day_name == 'Thursday' %}Torsdag
-                {% elif day_name == 'Friday' %}Fredag
-                {% elif day_name == 'Saturday' %}Lørdag
-                {% elif day_name == 'Sunday' %}Søndag
-                {% elif day_name == 'mandag' %}Mandag
-                {% elif day_name == 'tirsdag' %}Tirsdag
-                {% elif day_name == 'onsdag' %}Onsdag
-                {% elif day_name == 'torsdag' %}Torsdag
-                {% elif day_name == 'fredag' %}Fredag
-                {% elif day_name == 'lørdag' %}Lørdag
-                {% elif day_name == 'søndag' %}Søndag
-                {% else %}{{ day_name }}
-                {% endif %}
+              {% if day_name == 'Monday' %}Mandag
+              {% elif day_name == 'Tuesday' %}Tirsdag
+              {% elif day_name == 'Wednesday' %}Onsdag
+              {% elif day_name == 'Thursday' %}Torsdag
+              {% elif day_name == 'Friday' %}Fredag
+              {% elif day_name == 'Saturday' %}Lørdag
+              {% elif day_name == 'Sunday' %}Søndag
+              {% elif day_name == 'mandag' %}Mandag
+              {% elif day_name == 'tirsdag' %}Tirsdag
+              {% elif day_name == 'onsdag' %}Onsdag
+              {% elif day_name == 'torsdag' %}Torsdag
+              {% elif day_name == 'fredag' %}Fredag
+              {% elif day_name == 'lørdag' %}Lørdag
+              {% elif day_name == 'søndag' %}Søndag
+              {% else %}{{ day_name }}
+              {% endif %}
               {% endwith %}
               ({{ substitutliste.day|date:"d-m-y" }})
             </td>
             <td class="py-3 px-6 text-left">
               {{ substitutliste.responsible_name }}
               {% if substitutliste.responsible_email %}
-                <br>
-                <span class="text-sm text-gray-600">{{ substitutliste.responsible_email }}</span>
+              <br>
+              <span class="text-sm text-gray-600">{{ substitutliste.responsible_email }}</span>
               {% endif %}
             </td>
             <td class="py-3 px-6 text-left">
@@ -112,41 +127,44 @@
             </td>
             <td class="py-3 px-6 text-left">
               {% if substitutliste.assigned_substitutter %}
-                <ul class="list-none">
-                  {% for substitut in substitutliste.assigned_substitutter %}
-                    <li class="mb-4 p-2 border rounded">
-                      <strong>{{ substitut.name }}</strong><br>
-                      <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
-                      <span class="text-sm">Række: {{ substitut.række }}</span><br>
-                      <span class="text-sm">Status: {{ substitut.status }}</span><br>
-                      {% if substitut.note %}
-                        <span class="text-sm">Note: {{ substitut.note }}</span><br>
-                      {% endif %}
-                      {% if substitut.status == 'Optaget' %}
-                        <span class="text-sm">
-                          Substitut:<br>
-                          &nbsp;&nbsp;{{ substitut.reservationsnote|split_reservationsnote|safe }}
-                        </span>
-                      {% endif %}
-                      {% now "Y-m-d H:i:s" as current_datetime %}
-                      {% if current_datetime > substitutliste.deadline|date:"Y-m-d H:i:s" %}
-                        <div class="mt-2 bg-red-100 border border-red-400 text-red-700 px-2 py-1 rounded text-sm" role="alert">
-                          <strong>Frist overskredet</strong>
-                        </div>
-                      {% elif substitut.status == 'Ledig' %}
-                        <button type="button" @click="openModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
-                          Vælg
-                        </button>
-                      {% else %}
-                        <div class="mt-2 bg-gray-100 border border-gray-400 text-gray-700 px-2 py-1 rounded text-sm" role="alert">
-                          <strong>Ikke tilgængelig</strong>
-                        </div>
-                      {% endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
+              <ul class="list-none">
+                {% for substitut in substitutliste.assigned_substitutter %}
+                <li class="mb-4 p-2 border rounded">
+                  <strong>{{ substitut.name }}</strong><br>
+                  <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
+                  <span class="text-sm">Række: {{ substitut.række }}</span><br>
+                  <span class="text-sm">Status: {{ substitut.status }}</span><br>
+                  {% if substitut.note %}
+                  <span class="text-sm">Note: {{ substitut.note }}</span><br>
+                  {% endif %}
+                  {% if substitut.status == 'Optaget' %}
+                  <span class="text-sm">
+                    Substitut for:<br>
+                    &nbsp;&nbsp;{{ substitut.reservationsnote|split_reservationsnote|safe }}
+                  </span>
+                  {% endif %}
+                  {% now "Y-m-d H:i:s" as current_datetime %}
+                  {% if current_datetime > substitutliste.deadline|date:"Y-m-d H:i:s" %}
+                  <div class="mt-2 bg-red-100 border border-red-400 text-red-700 px-2 py-1 rounded text-sm"
+                    role="alert">
+                    <strong>Frist overskredet</strong>
+                  </div>
+                  {% elif substitut.status == 'Ledig' %}
+                  <button type="button" @click="openModal('{{ substitutliste.id }}', '{{ substitut.id }}')"
+                    class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
+                    Vælg
+                  </button>
+                  {% else %}
+                  <div class="mt-2 bg-gray-100 border border-gray-400 text-gray-700 px-2 py-1 rounded text-sm"
+                    role="alert">
+                    <strong>Ikke tilgængelig</strong>
+                  </div>
+                  {% endif %}
+                </li>
+                {% endfor %}
+              </ul>
               {% else %}
-                <span class="text-gray-500">Ingen tilgængelige substitutter</span>
+              <span class="text-gray-500">Ingen tilgængelige substitutter</span>
               {% endif %}
             </td>
           </tr>
@@ -155,49 +173,51 @@
       </table>
 
       <!-- Modal -->
-      <div id="substitut-modal" 
-           x-show="modalOpen" 
-           @click.away="closeModal()"
-           class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
-           x-cloak>
+      <div id="substitut-modal" x-show="modalOpen" @click.away="closeModal()"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" x-cloak>
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
           <div class="absolute top-0 right-0 mt-4 mr-4">
             <button @click="closeModal()" class="text-gray-400 hover:text-gray-600">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
           <div class="mt-3 text-center">
             <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræft valg af substitut</h3>
-            <form id="substitut-form" class="mt-2 text-left" x-data="{ name: '', email: '', phone: '', preArranged: false, formError: '' }">
+            <form id="substitut-form" class="mt-2 text-left"
+              x-data="{ name: '', email: '', phone: '', preArranged: false, formError: '' }">
               <input type="hidden" id="list-id" name="list_id">
               <input type="hidden" id="substitut-id" name="substitut_id">
               <div class="mb-4">
                 <label for="name" class="block text-sm font-medium text-gray-700">Navn</label>
-                <input type="text" id="name" name="name" x-model="name" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <input type="text" id="name" name="name" x-model="name" required
+                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
               </div>
               <div class="mb-4">
                 <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" id="email" name="email" x-model="email" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <input type="email" id="email" name="email" x-model="email" required
+                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
               </div>
               <div class="mb-4">
                 <label for="phone" class="block text-sm font-medium text-gray-700">Telefonnummer</label>
-                <input type="tel" id="phone" name="phone" x-model="phone" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                <input type="tel" id="phone" name="phone" x-model="phone" required
+                  class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
               </div>
               <div class="mb-4">
                 <label class="inline-flex items-center">
-                  <input type="checkbox" id="pre-arranged" name="pre_arranged" x-model="preArranged" class="form-checkbox">
+                  <input type="checkbox" id="pre-arranged" name="pre_arranged" x-model="preArranged"
+                    class="form-checkbox">
                   <span class="ml-2">Har du lavet en aftale på forhånd?</span>
                 </label>
               </div>
               <div x-show="formError" class="mb-4 text-red-500 text-sm" x-text="formError"></div>
               <div class="items-center px-4 py-3">
-                <button id="confirm-substitut" type="button" 
-                        @click="validateAndSubmit()"
-                        :disabled="!name || !email || !phone || !preArranged"
-                        :class="{ 'opacity-50 cursor-not-allowed': !name || !email || !phone || !preArranged }"
-                        class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                <button id="confirm-substitut" type="button" @click="validateAndSubmit()"
+                  :disabled="!name || !email || !phone || !preArranged"
+                  :class="{ 'opacity-50 cursor-not-allowed': !name || !email || !phone || !preArranged }"
+                  class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                   Bekræft
                 </button>
               </div>
@@ -207,15 +227,13 @@
       </div>
 
       <!-- Add this after the substitut-modal -->
-      <div id="confirmation-modal" 
-           x-show="confirmationModalOpen" 
-           @click.away="closeConfirmationModal()"
-           class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
-           x-cloak>
+      <div id="confirmation-modal" x-show="confirmationModalOpen" @click.away="closeConfirmationModal()"
+        class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" x-cloak>
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
           <div class="absolute top-0 right-0 mt-4 mr-4">
             <button @click="closeConfirmationModal()" class="text-gray-400 hover:text-gray-600">
-              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
@@ -226,7 +244,8 @@
               Substitut er blevet valgt og en email er sendt til den ansvarlige.
             </p>
             <div class="mt-4">
-              <button @click="closeConfirmationModal()" class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+              <button @click="closeConfirmationModal()"
+                class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
                 Luk
               </button>
             </div>
@@ -263,22 +282,22 @@
 
           {% now "Y-m-d H:i:s" as current_datetime %}
           {% if current_datetime > afmeldingsliste.deadline|date:"Y-m-d H:i:s" %}
-            <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-              <strong class="font-bold">Frist overskredet</strong>
-            </div>
+          <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">Frist overskredet</strong>
+          </div>
           {% else %}
-            <!-- Form to Append Afbud -->
-            <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
-              {% csrf_token %}
-              <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
-              <input type="text" id="afbud-name" name="afbud_name"
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Indtast navn">
-              <button type="submit"
-                class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Meld Afbud
-              </button>
-            </form>
+          <!-- Form to Append Afbud -->
+          <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
+            {% csrf_token %}
+            <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
+            <input type="text" id="afbud-name" name="afbud_name"
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Indtast navn">
+            <button type="submit"
+              class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              Meld Afbud
+            </button>
+          </form>
           {% endif %}
         </li>
         {% endfor %}
@@ -301,23 +320,23 @@
             console.log('Filtering with week:', this.selectedWeek, 'and day:', this.selectedDay);
             const rows = document.querySelectorAll('[data-week][data-day]');
             const dayMap = {
-                'Mandag': 'Monday',
-                'Tirsdag': 'Tuesday',
-                'Onsdag': 'Wednesday',
-                'Torsdag': 'Thursday',
-                'Fredag': 'Friday',
-                'Lørdag': 'Saturday',
-                'Søndag': 'Sunday'
+              'Mandag': 'Monday',
+              'Tirsdag': 'Tuesday',
+              'Onsdag': 'Wednesday',
+              'Torsdag': 'Thursday',
+              'Fredag': 'Friday',
+              'Lørdag': 'Saturday',
+              'Søndag': 'Sunday'
             };
             rows.forEach(row => {
-                console.log('Row data:', row.dataset);
-                const weekMatch = this.selectedWeek === '' || row.dataset.week === this.selectedWeek;
-                let dayMatch = this.selectedDay === '';
-                if (!dayMatch) {
-                    dayMatch = row.dataset.day === dayMap[this.selectedDay] || row.dataset.day === this.selectedDay;
-                }
-                console.log('Week match:', weekMatch, 'Day match:', dayMatch);
-                row.style.display = weekMatch && dayMatch ? '' : 'none';
+              console.log('Row data:', row.dataset);
+              const weekMatch = this.selectedWeek === '' || row.dataset.week === this.selectedWeek;
+              let dayMatch = this.selectedDay === '';
+              if (!dayMatch) {
+                dayMatch = row.dataset.day === dayMap[this.selectedDay] || row.dataset.day === this.selectedDay;
+              }
+              console.log('Week match:', weekMatch, 'Day match:', dayMatch);
+              row.style.display = weekMatch && dayMatch ? '' : 'none';
             });
           },
           updateUrl() {
@@ -345,12 +364,12 @@
           validateAndSubmit() {
             const form = document.getElementById('substitut-form');
             const formData = new FormData(form);
-            
+
             if (!formData.get('name') || !formData.get('email') || !formData.get('phone') || !formData.get('pre_arranged')) {
               this.formError = 'Alle felter skal udfyldes, og du skal bekræfte, at du har lavet en aftale på forhånd.';
               return;
             }
-            
+
             this.formError = '';
             this.submitForm(formData);
           },
@@ -367,20 +386,20 @@
                 'X-CSRFToken': '{{ csrf_token }}'
               }
             })
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                this.closeModal();
-                this.openConfirmationModal();
-              } else {
-                console.error('Error:', data.error);
-                alert('Der opstod en fejl: ' + data.error);
-              }
-            })
-            .catch(error => {
-              console.error('Error:', error);
-              alert('Der opstod en uventet fejl. Prøv venligst igen.');
-            });
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  this.closeModal();
+                  this.openConfirmationModal();
+                } else {
+                  console.error('Error:', data.error);
+                  alert('Der opstod en fejl: ' + data.error);
+                }
+              })
+              .catch(error => {
+                console.error('Error:', error);
+                alert('Der opstod en uventet fejl. Prøv venligst igen.');
+              });
           }
         }))
       })
