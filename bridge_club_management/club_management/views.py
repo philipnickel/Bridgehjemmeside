@@ -46,7 +46,7 @@ def front_page(request):
             to_attr='assignments'
         )
     ).all()
-    afmeldingslister = Afmeldingsliste.objects.all()
+    afmeldingslister = Afmeldingsliste.objects.all().order_by('day')
     weeks = Week.objects.all()
     weeks = sorted(weeks, key=lambda week: int(week.name))  # Sort weeks by numeric value of name
 
