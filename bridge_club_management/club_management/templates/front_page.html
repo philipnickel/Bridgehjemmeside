@@ -62,100 +62,90 @@
         </select>
       </div>
 
-      <!-- Substitutliste Table -->
-      <table class="min-w-full bg-white shadow rounded-lg overflow-hidden">
-        <thead>
-          <tr class="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
-            <th class="py-3 px-6 text-left">Dag</th>
-            <th class="py-3 px-6 text-left">Ansvarlig</th>
-            <th class="py-3 px-6 text-left">Frist</th>
-            <th class="py-3 px-6 text-left">Substitutter</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for substitutliste in substitutlister %}
-          <tr class="border-b border-gray-200 hover:bg-gray-100"
-              data-week="{{ substitutliste.week.id }}"
-              data-day="{{ substitutliste.day_name }}"
-              data-list-id="{{ substitutliste.id }}"
-              data-responsible-email="{{ substitutliste.responsible_email }}">
-            <td class="py-3 px-6 text-left whitespace-nowrap">
-              {% with day_name=substitutliste.day|date:"l" %}
-                {% if day_name == 'Monday' %}Mandag
-                {% elif day_name == 'Tuesday' %}Tirsdag
-                {% elif day_name == 'Wednesday' %}Onsdag
-                {% elif day_name == 'Thursday' %}Torsdag
-                {% elif day_name == 'Friday' %}Fredag
-                {% elif day_name == 'Saturday' %}Lørdag
-                {% elif day_name == 'Sunday' %}Søndag
-                {% elif day_name == 'mandag' %}Mandag
-                {% elif day_name == 'tirsdag' %}Tirsdag
-                {% elif day_name == 'onsdag' %}Onsdag
-                {% elif day_name == 'torsdag' %}Torsdag
-                {% elif day_name == 'fredag' %}Fredag
-                {% elif day_name == 'lørdag' %}Lørdag
-                {% elif day_name == 'søndag' %}Søndag
-                {% else %}{{ day_name }}
-                {% endif %}
-              {% endwith %}
-              ({{ substitutliste.day|date:"d-m-y" }})
-            </td>
-            <td class="py-3 px-6 text-left">
-              {{ substitutliste.responsible_name }}
+      <!-- Substitutliste Display -->
+      {% for substitutliste in substitutlister %}
+      <div class="mb-8 border-b pb-4"
+           data-week="{{ substitutliste.week.id }}"
+           data-day="{{ substitutliste.day_name }}"
+           data-list-id="{{ substitutliste.id }}"
+           data-responsible-email="{{ substitutliste.responsible_email }}">
+        <div class="mb-4">
+          <h3 class="text-xl font-bold">
+            {% with day_name=substitutliste.day|date:"l" %}
+              {% if day_name == 'Monday' %}Mandag
+              {% elif day_name == 'Tuesday' %}Tirsdag
+              {% elif day_name == 'Wednesday' %}Onsdag
+              {% elif day_name == 'Thursday' %}Torsdag
+              {% elif day_name == 'Friday' %}Fredag
+              {% elif day_name == 'Saturday' %}Lørdag
+              {% elif day_name == 'Sunday' %}Søndag
+              {% elif day_name == 'mandag' %}Mandag
+              {% elif day_name == 'tirsdag' %}Tirsdag
+              {% elif day_name == 'onsdag' %}Onsdag
+              {% elif day_name == 'torsdag' %}Torsdag
+              {% elif day_name == 'fredag' %}Fredag
+              {% elif day_name == 'lørdag' %}Lørdag
+              {% elif day_name == 'søndag' %}Søndag
+              {% else %}{{ day_name }}
+              {% endif %}
+            {% endwith %}
+            ({{ substitutliste.day|date:"d-m-y" }})
+          </h3>
+          <div class="mt-2 flex justify-between items-center text-sm text-gray-600">
+            <div>
+              <span class="font-semibold">Ansvarlig:</span> {{ substitutliste.responsible_name }}
               {% if substitutliste.responsible_email %}
-                <br>
-                <span class="text-sm text-gray-600">{{ substitutliste.responsible_email }}</span>
+                ({{ substitutliste.responsible_email }})
               {% endif %}
-            </td>
-            <td class="py-3 px-6 text-left">
-              {{ substitutliste.deadline|date:"d-m-y H:i" }}
-            </td>
-            <td class="py-3 px-6 text-left">
-              {% if substitutliste.assigned_substitutter %}
-                <ul class="list-none">
-                  {% for substitut in substitutliste.assigned_substitutter %}
-                    <li class="mb-4 p-2 border rounded">
-                      <strong>{{ substitut.name }}</strong><br>
-                      <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
-                      <span class="text-sm">Række: {{ substitut.række }}</span><br>
-                      <span class="text-sm">Status: {{ substitut.status }}</span><br>
-                      {% if substitut.note %}
-                        <span class="text-sm">Note: {{ substitut.note }}</span><br>
-                      {% endif %}
-                      {% if substitut.status == 'Optaget' %}
-                        <span class="text-sm">
-                          Substitut for:<br>
-                          &nbsp;&nbsp;{{ substitut.reservationsnote|split_reservationsnote|safe }}
-                        </span>
-                      {% endif %}
-                      {% now "Y-m-d H:i:s" as current_datetime %}
-                      {% if current_datetime > substitutliste.deadline|date:"Y-m-d H:i:s" %}
-                        <div class="mt-2 bg-red-100 border border-red-400 text-red-700 px-2 py-1 rounded text-sm" role="alert">
-                          <strong>Frist overskredet</strong>
-                        </div>
-                      {% elif substitut.status == 'Ledig' %}
-                        <button type="button" @click="openModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
-                          Vælg
-                        </button>
-                        <button type="button" @click="openAfbudModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">
-                          Meld Afbud
-                        </button>
-                      {% else %}
-                        <div class="mt-2 bg-gray-100 border border-gray-400 text-gray-700 px-2 py-1 rounded text-sm" role="alert">
-                          <strong>Ikke tilgængelig</strong>
-                        </div>
-                      {% endif %}
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% else %}
-                <span class="text-gray-500">Ingen tilgængelige substitutter</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            </div>
+            <div>
+              <span class="font-semibold">Frist:</span> {{ substitutliste.deadline|date:"d-m-y H:i" }}
+            </div>
+          </div>
+        </div>
+        
+        {% if substitutliste.assigned_substitutter %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for substitut in substitutliste.assigned_substitutter %}
+              <div class="border rounded p-4">
+                <strong>{{ substitut.name }}</strong><br>
+                <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
+                <span class="text-sm">Række: {{ substitut.række }}</span><br>
+                <span class="text-sm">Status: {{ substitut.status }}</span><br>
+                {% if substitut.note %}
+                  <span class="text-sm">Note: {{ substitut.note }}</span><br>
+                {% endif %}
+                {% if substitut.status == 'Optaget' %}
+                  <span class="text-sm">
+                    Substitut for:<br>
+                    &nbsp;&nbsp;{{ substitut.reservationsnote|split_reservationsnote|safe }}
+                  </span>
+                {% endif %}
+                {% now "Y-m-d H:i:s" as current_datetime %}
+                {% if current_datetime > substitutliste.deadline|date:"Y-m-d H:i:s" %}
+                  <div class="mt-2 bg-red-100 border border-red-400 text-red-700 px-2 py-1 rounded text-sm" role="alert">
+                    <strong>Frist overskredet</strong>
+                  </div>
+                {% elif substitut.status == 'Ledig' %}
+                  <button type="button" @click="openModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
+                    Vælg
+                  </button>
+                  <button type="button" @click="openAfbudModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">
+                    Meld Afbud
+                  </button>
+                {% else %}
+                  <div class="mt-2 bg-gray-100 border border-gray-400 text-gray-700 px-2 py-1 rounded text-sm" role="alert">
+                    <strong>Ikke tilgængelig</strong>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <span class="text-gray-500">Ingen tilgængelige substitutter</span>
+        {% endif %}
+      </div>
+      {% endfor %}
 
       <!-- Modal -->
       <div id="substitut-modal" 
@@ -399,6 +389,8 @@
             this.afbudModalOpen = true;
             this.confirmed = false;
             this.formError = '';
+            document.getElementById('afbud-list-id').value = listId;
+            document.getElementById('afbud-substitut-id').value = substitutId;
           },
           closeAfbudModal() {
             this.afbudModalOpen = false;
@@ -431,8 +423,8 @@
           },
           submitForm(formData) {
             const listId = formData.get('list_id');
-            const listRow = document.querySelector(`tr[data-list-id="${listId}"]`);
-            const responsibleEmail = listRow.dataset.responsibleEmail;
+            const listElement = document.querySelector(`[data-list-id="${listId}"]`);
+            const responsibleEmail = listElement.dataset.responsibleEmail;
             formData.append('responsible_email', responsibleEmail);
 
             fetch('{% url "select_substitut" %}', {
@@ -462,8 +454,8 @@
             formData.append('list_id', this.afbudListId);
             formData.append('substitut_id', this.afbudSubstitutId);
             
-            const listRow = document.querySelector(`tr[data-list-id="${this.afbudListId}"]`);
-            const responsibleEmail = listRow.dataset.responsibleEmail;
+            const listElement = document.querySelector(`[data-list-id="${this.afbudListId}"]`);
+            const responsibleEmail = listElement.dataset.responsibleEmail;
             formData.append('responsible_email', responsibleEmail);
 
             fetch('{% url "meld_afbud" %}', {
