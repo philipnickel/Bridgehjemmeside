@@ -148,6 +148,40 @@ def select_substitut(request):
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
+def meld_afbud(request):
+    if request.method == 'POST':
+        list_id = request.POST.get('list_id')
+        substitut_id = request.POST.get('substitut_id')
+        responsible_email = request.POST.get('responsible_email')
+        
+        try:
+            assignment = UserSubstitutAssignment.objects.get(
+                substitutliste_id=list_id,
+                user_id=substitut_id
+            )
+            assignment.status = 'Fraværende'
+            assignment.save()
+            
+            substitutliste = get_object_or_404(Substitutliste, id=list_id)
+            substitut = get_object_or_404(CustomUser, id=substitut_id)
+            
+            substitut_name = substitut.get_full_name() or substitut.username
+            
+            # Send email to responsible person
+            subject = 'Substitut har meldt afbud'
+            message = f"""
+            Substitut {substitut_name} har meldt afbud for listen {substitutliste.name} ({substitutliste.day}).
+            """
+            send_mail(subject, message, 'from@example.com', [responsible_email])
+            
+            return JsonResponse({'success': True})
+        except UserSubstitutAssignment.DoesNotExist:
+            logger.error(f"UserSubstitutAssignment not found for list_id={list_id}, substitut_id={substitut_id}")
+            return JsonResponse({'success': False, 'error': 'Substitut assignment not found.'})
+        except Exception as e:
+            logger.error(f"Unexpected error in meld_afbud: {str(e)}")
+            return JsonResponse({'success': False, 'error': str(e)})
+
 def login(request):
     # Logic for handling login functionality
     return render(request, 'login.html')

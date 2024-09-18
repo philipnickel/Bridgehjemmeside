@@ -137,6 +137,9 @@
                         <button type="button" @click="openModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
                           Vælg
                         </button>
+                        <button type="button" @click="openAfbudModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">
+                          Meld Afbud
+                        </button>
                       {% else %}
                         <div class="mt-2 bg-gray-100 border border-gray-400 text-gray-700 px-2 py-1 rounded text-sm" role="alert">
                           <strong>Ikke tilgængelig</strong>
@@ -233,6 +236,49 @@
           </div>
         </div>
       </div>
+
+      <!-- Update the afbud-modal -->
+      <div id="afbud-modal" 
+           x-show="afbudModalOpen" 
+           @click.away="closeAfbudModal()"
+           class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
+           x-cloak>
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div class="absolute top-0 right-0 mt-4 mr-4">
+            <button @click="closeAfbudModal()" class="text-gray-400 hover:text-gray-600">
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræft Afbud</h3>
+            <form id="afbud-form" class="mt-2 text-left" x-data="{ confirmed: false, formError: '' }">
+              <input type="hidden" id="afbud-list-id" name="list_id">
+              <input type="hidden" id="afbud-substitut-id" name="substitut_id">
+              <div class="mb-4 text-red-600 font-bold">
+                Advarsel: Denne handling kan ikke fortrydes!
+              </div>
+              <div class="mb-4">
+                <label class="inline-flex items-center">
+                  <input type="checkbox" x-model="confirmed" class="form-checkbox">
+                  <span class="ml-2">Jeg bekræfter, at jeg ønsker at melde afbud</span>
+                </label>
+              </div>
+              <div x-show="formError" class="mb-4 text-red-500 text-sm" x-text="formError"></div>
+              <div class="items-center px-4 py-3">
+                <button id="confirm-afbud" type="button" 
+                        @click="validateAndSubmitAfbud()"
+                        :disabled="!confirmed"
+                        :class="{ 'opacity-50 cursor-not-allowed': !confirmed }"
+                        class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300">
+                  Bekræft Afbud
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Afmeldingslister Section -->
@@ -291,6 +337,11 @@
         Alpine.data('substitutlister', () => ({
           modalOpen: false,
           confirmationModalOpen: false,
+          afbudModalOpen: false,
+          afbudListId: null,
+          afbudSubstitutId: null,
+          confirmed: false,
+          formError: '',
           selectedWeek: new URLSearchParams(window.location.search).get('week') || '{{ weeks.0.id }}',
           selectedDay: new URLSearchParams(window.location.search).get('day') || '{{ days.0.name }}',
           init() {
@@ -342,6 +393,20 @@
             this.confirmationModalOpen = false;
             window.location.reload();
           },
+          openAfbudModal(listId, substitutId) {
+            this.afbudListId = listId;
+            this.afbudSubstitutId = substitutId;
+            this.afbudModalOpen = true;
+            this.confirmed = false;
+            this.formError = '';
+          },
+          closeAfbudModal() {
+            this.afbudModalOpen = false;
+            this.afbudListId = null;
+            this.afbudSubstitutId = null;
+            this.confirmed = false;
+            this.formError = '';
+          },
           validateAndSubmit() {
             const form = document.getElementById('substitut-form');
             const formData = new FormData(form);
@@ -353,6 +418,16 @@
             
             this.formError = '';
             this.submitForm(formData);
+          },
+          validateAndSubmitAfbud() {
+            this.formError = '';
+
+            if (!this.confirmed) {
+              this.formError = 'Venligst bekræft, at du ønsker at melde afbud.';
+              return;
+            }
+
+            this.submitAfbudForm();
           },
           submitForm(formData) {
             const listId = formData.get('list_id');
@@ -380,6 +455,37 @@
             .catch(error => {
               console.error('Error:', error);
               alert('Der opstod en uventet fejl. Prøv venligst igen.');
+            });
+          },
+          submitAfbudForm() {
+            const formData = new FormData();
+            formData.append('list_id', this.afbudListId);
+            formData.append('substitut_id', this.afbudSubstitutId);
+            
+            const listRow = document.querySelector(`tr[data-list-id="${this.afbudListId}"]`);
+            const responsibleEmail = listRow.dataset.responsibleEmail;
+            formData.append('responsible_email', responsibleEmail);
+
+            fetch('{% url "meld_afbud" %}', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+              }
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                this.closeAfbudModal();
+                location.reload(); // Reload the page to reflect the changes
+              } else {
+                console.error('Error:', data.error);
+                this.formError = 'Der opstod en fejl: ' + data.error;
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              this.formError = 'Der opstod en uventet fejl. Prøv venligst igen.';
             });
           }
         }))
