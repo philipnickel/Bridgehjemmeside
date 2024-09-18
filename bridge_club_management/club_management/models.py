@@ -147,7 +147,7 @@ class Afmeldingsliste(models.Model):
     name = models.CharField(_("Navn"), max_length=100, default="unknown")
     day = models.DateField(_("Dag"))
     deadline = models.DateTimeField()
-    afbud = models.TextField(default="Afbud")
+    afbud = models.TextField(blank=True)  # Changed this line
 
     class Meta:
         verbose_name = "Afmeldingsliste"
