@@ -144,15 +144,17 @@ class UserSubstitutAssignment(models.Model):
 
 
 class Afmeldingsliste(models.Model):
-    name = models.CharField(_("Navn"),max_length=100, default="unknown")
-    week = models.ForeignKey(Week, verbose_name=_("Uge"), on_delete=models.CASCADE)
+    name = models.CharField(_("Navn"), max_length=100, default="unknown")
     day = models.DateField(_("Dag"))
     deadline = models.DateTimeField()
     afbud = models.TextField(default="Afbud")
 
     class Meta:
-        verbose_name = "Afmeldingsliste"  # Change the verbose name of the model
-        verbose_name_plural = "Afmeldingslister"  # Change the verbose plural name of the model
+        verbose_name = "Afmeldingsliste"
+        verbose_name_plural = "Afmeldingslister"
+
+    def __str__(self):
+        return f"{self.name} - {self.day}"
 
 
 class Configuration(models.Model):

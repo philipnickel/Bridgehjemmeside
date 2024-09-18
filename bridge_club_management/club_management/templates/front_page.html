@@ -272,53 +272,51 @@
     </div>
 
     <!-- Afmeldingslister Section -->
-    <div class="bg-white shadow-lg rounded-lg p-8 mb-8" x-data="{ selectedWeekAfbud: '' }">
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8" x-data="afmeldingslister">
       <h2 class="text-2xl font-bold mb-4">Afmeldingslister</h2>
 
-      <!-- Week Selection Dropdown -->
+      <!-- Afmeldingsliste Selection Dropdown -->
       <div class="mb-4">
-        <label for="week-selector-afbud" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
-        <select id="week-selector-afbud" x-model="selectedWeekAfbud"
+        <label for="afmeldingsliste-selector" class="block text-lg font-medium text-gray-700">Vælg liste:</label>
+        <select id="afmeldingsliste-selector" x-model="selectedAfmeldingsliste"
+          @change="showSelectedAfmeldingsliste()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-          <option value="">-- Vælg en uge --</option>
-          {% for week in weeks|dictsort:"name" %}
-          <option value="{{ week.id }}">{{ week.name }}</option>
+          {% for afmeldingsliste in afmeldingslister %}
+          <option value="{{ afmeldingsliste.id }}">{{ afmeldingsliste.name }} ({{ afmeldingsliste.day|date:"d-m-Y" }})</option>
           {% endfor %}
         </select>
       </div>
 
       <!-- Afmeldingsliste Display -->
-      <ul>
-        {% for afmeldingsliste in afmeldingslister %}
-        <li x-show="selectedWeekAfbud == '{{ afmeldingsliste.week.id }}'"
-          class="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
-          <h3 class="text-xl font-bold mb-2">{{ afmeldingsliste.name }}</h3>
-          <p class="mb-1"><strong>Dag:</strong> {{ afmeldingsliste.day|date:"l, d F Y" }}</p>
-          <p class="mb-1"><strong>Frist:</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
-          <p class="mb-1"><strong>Afbud:</strong> {{ afmeldingsliste.afbud }}</p>
+      {% for afmeldingsliste in afmeldingslister %}
+      <div x-show="selectedAfmeldingsliste == '{{ afmeldingsliste.id }}'"
+        class="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
+        <h3 class="text-xl font-bold mb-2">{{ afmeldingsliste.name }}</h3>
+        <p class="mb-1"><strong>Dag:</strong> {{ afmeldingsliste.day|date:"l, d F Y" }}</p>
+        <p class="mb-1"><strong>Frist:</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
+        <p class="mb-1"><strong>Afbud:</strong> {{ afmeldingsliste.afbud }}</p>
 
-          {% now "Y-m-d H:i:s" as current_datetime %}
-          {% if current_datetime > afmeldingsliste.deadline|date:"Y-m-d H:i:s" %}
-            <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-              <strong class="font-bold">Frist overskredet</strong>
-            </div>
-          {% else %}
-            <!-- Form to Append Afbud -->
-            <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
-              {% csrf_token %}
-              <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
-              <input type="text" id="afbud-name" name="afbud_name"
-                class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Indtast navn">
-              <button type="submit"
-                class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Meld Afbud
-              </button>
-            </form>
-          {% endif %}
-        </li>
-        {% endfor %}
-      </ul>
+        {% now "Y-m-d H:i:s" as current_datetime %}
+        {% if current_datetime > afmeldingsliste.deadline|date:"Y-m-d H:i:s" %}
+          <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">Frist overskredet</strong>
+          </div>
+        {% else %}
+          <!-- Form to Append Afbud -->
+          <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
+            {% csrf_token %}
+            <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
+            <input type="text" id="afbud-name" name="afbud_name"
+              class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              placeholder="Indtast navn">
+            <button type="submit"
+              class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+              Meld Afbud
+            </button>
+          </form>
+        {% endif %}
+      </div>
+      {% endfor %}
     </div>
 
     <!-- Add your JavaScript at the end of the body -->
@@ -481,6 +479,22 @@
             });
           }
         }))
+
+        Alpine.data('afmeldingslister', () => ({
+          selectedAfmeldingsliste: '',
+          init() {
+            // Initialize with the first afmeldingsliste
+            const firstAfmeldingsliste = document.querySelector('#afmeldingsliste-selector option');
+            if (firstAfmeldingsliste) {
+              this.selectedAfmeldingsliste = firstAfmeldingsliste.value;
+              this.showSelectedAfmeldingsliste();
+            }
+          },
+          showSelectedAfmeldingsliste() {
+            // This method is called when the dropdown changes
+            // It's also called on init to show the first afmeldingsliste
+          }
+        }));
       })
     </script>
 
