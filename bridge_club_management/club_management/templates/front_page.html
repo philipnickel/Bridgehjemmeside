@@ -18,17 +18,7 @@
 </head>
 
 <body class="bg-gray-100">
-  <nav class="bg-gray-800 shadow">
-    <div class="container mx-auto py-4 flex justify-between items-center">
-      <a class="text-xl font-bold text-gray-200" href="#">Substitutlister og Afmeldingslister</a>
-      <ul class="ml-auto flex space-x-4">
-        <li><a href="{% url 'substitutlister' %}" class="text-gray-200">Substitutlister</a></li>
-        <li><a href="{% url 'afmeldingslister' %}" class="text-gray-200">Afmeldingslister</a></li>
-        <li><a href="{% url 'tilmeldingslister' %}" class="text-gray-200">Tilmeldingslister</a></li>
-        <li><a href="{% url 'admin:index' %}" class="text-gray-200">Login</a></li>
-      </ul>
-    </div>
-  </nav>
+  {% include 'navbar.html' %}
 
   <div class="container mx-auto my-8">
     <!-- Jumbotron with Welcome Text -->
