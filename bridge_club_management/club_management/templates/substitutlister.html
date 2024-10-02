@@ -1,0 +1,373 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Substitutlister</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    [x-cloak] { display: none !important; }
+    .ck-content ul, .text-lg ul { list-style-type: disc; padding-left: 2em; }
+    .ck-content ol, .text-lg ol { list-style-type: decimal; padding-left: 2em; }
+    .ck-content li, .text-lg li { display: list-item; }
+  </style>
+</head>
+<body class="bg-gray-100">
+  {% include 'navbar.html' %}
+  <div class="container mx-auto my-8" x-data="substitutlister">
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
+      <h2 class="text-2xl font-bold mb-4">Substitutlister</h2>
+      <!-- Week Selection Dropdown -->
+      <div class="mb-4">
+        <label for="week-selector" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
+        <select id="week-selector" x-model="selectedWeek" @change="updateUrl()"
+          class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          {% for week in weeks %}
+          <option value="{{ week.id }}" {% if forloop.first %}selected{% endif %}>{{ week.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <!-- Day Selection Dropdown -->
+      <div class="mb-4">
+        <label for="day-selector" class="block text-lg font-medium text-gray-700">Vælg dag:</label>
+        <select id="day-selector" x-model="selectedDay" @change="updateUrl()"
+          class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+          {% for day in days %}
+          <option value="{{ day.name }}" {% if forloop.first %}selected{% endif %}>{{ day.name|translate_day:day_name_mapping }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <!-- Substitutliste Display -->
+      {% for substitutliste in substitutlister %}
+      <div class="mb-8 border-b pb-4"
+           data-week="{{ substitutliste.week.id }}"
+           data-day="{{ substitutliste.day_of_week }}"
+           data-list-id="{{ substitutliste.id }}"
+           data-responsible-email="{{ substitutliste.responsible_email }}">
+        <div class="mb-4">
+          <h3 class="text-xl font-bold">
+            {{ substitutliste.day_of_week|translate_day:day_name_mapping }}
+            ({{ substitutliste.day|date:"d-m-y" }})
+          </h3>
+          <div class="mt-2 flex justify-between items-center text-sm text-gray-600">
+            <div>
+              <span class="font-semibold">Ansvarlig:</span> {{ substitutliste.responsible_name }}
+              {% if substitutliste.responsible_email %}
+                ({{ substitutliste.responsible_email }})
+              {% endif %}
+            </div>
+            <div>
+              <span class="font-semibold">Frist:</span> {{ substitutliste.deadline|date:"d-m-y H:i" }}
+            </div>
+          </div>
+        </div>
+        {% if substitutliste.assigned_substitutter %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for substitut in substitutliste.assigned_substitutter %}
+              <div class="border rounded p-4">
+                <strong>{{ substitut.name }}</strong><br>
+                <span class="text-sm">Tlf: {{ substitut.phone }}</span><br>
+                <span class="text-sm">Række: {{ substitut.række }}</span><br>
+                <span class="text-sm">Status: {{ substitut.status }}</span><br>
+                {% if substitut.note %}
+                  <span class="text-sm">Note: {{ substitut.note }}</span><br>
+                {% endif %}
+                {% if substitut.status == 'Optaget' %}
+                  <span class="text-sm">
+                    Substitut for:<br>
+                    &nbsp;&nbsp;{{ substitut.reservationsnote|split_reservationsnote|safe }}
+                  </span>
+                {% endif %}
+                {% now "Y-m-d H:i:s" as current_datetime %}
+                {% if current_datetime > substitutliste.deadline|date:"Y-m-d H:i:s" %}
+                  <div class="mt-2 bg-red-100 border border-red-400 text-red-700 px-2 py-1 rounded text-sm" role="alert">
+                    <strong>Frist overskredet</strong>
+                  </div>
+                {% elif substitut.status == 'Ledig' %}
+                  <button type="button" @click="openModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm">
+                    Vælg
+                  </button>
+                  <button type="button" @click="openAfbudModal('{{ substitutliste.id }}', '{{ substitut.id }}')" class="mt-2 bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded text-sm">
+                    Meld Afbud
+                  </button>
+                {% else %}
+                  <div class="mt-2 bg-gray-100 border border-gray-400 text-gray-700 px-2 py-1 rounded text-sm" role="alert">
+                    <strong>Ikke tilgængelig</strong>
+                  </div>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <!-- Modal -->
+    <div id="substitut-modal" 
+         x-show="modalOpen" 
+         @click.away="closeModal()"
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
+         x-cloak>
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="absolute top-0 right-0 mt-4 mr-4">
+          <button @click="closeModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræft valg af substitut</h3>
+          <form id="substitut-form" class="mt-2 text-left" x-data="{ name: '', email: '', phone: '', preArranged: false, formError: '' }">
+            <input type="hidden" id="list-id" name="list_id">
+            <input type="hidden" id="substitut-id" name="substitut_id">
+            <div class="mb-4">
+              <label for="name" class="block text-sm font-medium text-gray-700">Navn</label>
+              <input type="text" id="name" name="name" x-model="name" required
+                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="mb-4">
+              <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+              <input type="email" id="email" name="email" x-model="email" required
+                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="mb-4">
+              <label for="phone" class="block text-sm font-medium text-gray-700">Telefon</label>
+              <input type="tel" id="phone" name="phone" x-model="phone" required
+                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            </div>
+            <div class="mb-4">
+              <label class="inline-flex items-center">
+                <input type="checkbox" name="pre_arranged" x-model="preArranged" class="form-checkbox" required>
+                <span class="ml-2 text-sm text-gray-700">Jeg bekræfter, at jeg har lavet en aftale på forhånd</span>
+              </label>
+            </div>
+            <div x-show="formError" class="mb-4 text-red-500 text-sm" x-text="formError"></div>
+            <div class="items-center px-4 py-3">
+              <button id="confirm-substitut" type="button" 
+                      @click="validateAndSubmit()"
+                      :disabled="!name || !email || !phone || !preArranged"
+                      :class="{ 'opacity-50 cursor-not-allowed': !name || !email || !phone || !preArranged }"
+                      class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                Bekræft
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" 
+         x-show="confirmationModalOpen" 
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
+         x-cloak>
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræftelse</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500">
+              Du har nu valgt denne substitut. Der er sendt en mail til den ansvarlige.
+            </p>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button
+              id="close-btn"
+              @click="closeConfirmationModal()"
+              class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            >
+              Luk
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Afbud Modal -->
+    <div id="afbud-modal" 
+         x-show="afbudModalOpen" 
+         @click.away="closeAfbudModal()"
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
+         x-cloak>
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3 text-center">
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræft afbud</h3>
+          <div class="mt-2 px-7 py-3">
+            <p class="text-sm text-gray-500">
+              Er du sikker på, at du vil melde afbud?
+            </p>
+          </div>
+          <div class="items-center px-4 py-3">
+            <button
+              id="afbud-ok-btn"
+              @click="submitAfbudForm()"
+              class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+            >
+              Ja, meld afbud
+            </button>
+            <button
+              id="afbud-cancel-btn"
+              @click="closeAfbudModal()"
+              class="mt-3 px-4 py-2 bg-white text-gray-800 text-base font-medium rounded-md w-full shadow-sm border border-gray-300 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            >
+              Annuller
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('substitutlister', () => ({
+        modalOpen: false,
+        confirmationModalOpen: false,
+        afbudModalOpen: false,
+        afbudListId: null,
+        afbudSubstitutId: null,
+        confirmed: false,
+        formError: '',
+        selectedWeek: new URLSearchParams(window.location.search).get('week') || '{{ weeks.0.id }}',
+        selectedDay: new URLSearchParams(window.location.search).get('day') || '{{ days.0.name }}',
+        init() {
+          this.filterSubstitutlister();
+          this.updateUrl();
+        },
+        filterSubstitutlister() {
+          const rows = document.querySelectorAll('[data-week][data-day]');
+          const dayMap = {
+            'Mandag': 'Monday',
+            'Tirsdag': 'Tuesday',
+            'Onsdag': 'Wednesday',
+            'Torsdag': 'Thursday',
+            'Fredag': 'Friday',
+            'Lørdag': 'Saturday',
+            'Søndag': 'Sunday'
+          };
+          rows.forEach(row => {
+            const weekMatch = this.selectedWeek === '' || row.dataset.week === this.selectedWeek;
+            let dayMatch = this.selectedDay === '';
+            if (!dayMatch) {
+              dayMatch = row.dataset.day === dayMap[this.selectedDay] || row.dataset.day === this.selectedDay;
+            }
+            row.style.display = weekMatch && dayMatch ? '' : 'none';
+          });
+        },
+        updateUrl() {
+          const url = new URL(window.location);
+          url.searchParams.set('week', this.selectedWeek);
+          url.searchParams.set('day', this.selectedDay);
+          window.history.pushState({}, '', url);
+          this.filterSubstitutlister();
+        },
+        openModal(listId, substitutId) {
+          this.modalOpen = true;
+          document.getElementById('list-id').value = listId;
+          document.getElementById('substitut-id').value = substitutId;
+          // Reset form fields
+          document.getElementById('name').value = '';
+          document.getElementById('email').value = '';
+          document.getElementById('phone').value = '';
+          document.getElementById('substitut-form').reset();
+          this.formError = '';
+        },
+        closeModal() {
+          this.modalOpen = false;
+        },
+        openConfirmationModal() {
+          this.confirmationModalOpen = true;
+        },
+        closeConfirmationModal() {
+          this.confirmationModalOpen = false;
+          location.reload();
+        },
+        validateAndSubmit() {
+          const form = document.getElementById('substitut-form');
+          const formData = new FormData(form);
+          
+          if (!formData.get('name') || !formData.get('email') || !formData.get('phone') || !formData.get('pre_arranged')) {
+            this.formError = 'Alle felter skal udfyldes, og du skal bekræfte, at du har lavet en aftale på forhånd.';
+            return;
+          }
+          
+          this.formError = '';
+          this.submitForm(formData);
+        },
+        submitForm(formData) {
+          const listId = formData.get('list_id');
+          const listElement = document.querySelector(`[data-list-id="${listId}"]`);
+          const responsibleEmail = listElement.dataset.responsibleEmail;
+          formData.append('responsible_email', responsibleEmail);
+
+          fetch('{% url "select_substitut" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              this.closeModal();
+              this.openConfirmationModal();
+            } else {
+              console.error('Error:', data.error);
+              alert('Der opstod en fejl: ' + data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Der opstod en uventet fejl. Prøv venligst igen.');
+          });
+        },
+        openAfbudModal(listId, substitutId) {
+          this.afbudModalOpen = true;
+          this.afbudListId = listId;
+          this.afbudSubstitutId = substitutId;
+        },
+        closeAfbudModal() {
+          this.afbudModalOpen = false;
+          this.afbudListId = null;
+          this.afbudSubstitutId = null;
+        },
+        submitAfbudForm() {
+          const formData = new FormData();
+          formData.append('list_id', this.afbudListId);
+          formData.append('substitut_id', this.afbudSubstitutId);
+          
+          const listElement = document.querySelector(`[data-list-id="${this.afbudListId}"]`);
+          const responsibleEmail = listElement.dataset.responsibleEmail;
+          formData.append('responsible_email', responsibleEmail);
+
+          fetch('{% url "meld_afbud" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              this.closeAfbudModal();
+              alert('Afbud er blevet meldt.');
+              location.reload();
+            } else {
+              console.error('Error:', data.error);
+              alert('Der opstod en fejl: ' + data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Der opstod en uventet fejl. Prøv venligst igen.');
+          });
+        }
+      }));
+    });
+  </script>
+</body>
+</html>

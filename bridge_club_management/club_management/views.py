@@ -9,31 +9,38 @@ from django.db.models import Prefetch
 from django.contrib import messages
 from django.urls import reverse
 from django.http import JsonResponse
+from django.core.serializers import serialize
+import json
+from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
 
+@require_POST
 def append_afbud(request, afmeldingsliste_id):
-    afmeldingsliste = get_object_or_404(Afmeldingsliste, id=afmeldingsliste_id)
-
-    if request.method == 'POST':
+    try:
+        afmeldingsliste = get_object_or_404(Afmeldingsliste, id=afmeldingsliste_id)
         afbud_name = request.POST.get('afbud_name', '').strip()
 
         if afbud_name:
-            if afmeldingsliste.afbud:
-                afmeldingsliste.afbud += ', ' + afbud_name
+            current_afbud = afmeldingsliste.afbud or ''
+            afbud_list = [name.strip() for name in current_afbud.replace('Afbud:', '').split(',') if name.strip()]
+            
+            # Check if the name is already in the list (case-insensitive)
+            if afbud_name.lower() not in [name.lower() for name in afbud_list]:
+                afbud_list.append(afbud_name)
+                
+                # Join the list back into a string, adding 'Afbud:' at the beginning
+                afmeldingsliste.afbud = 'Afbud: ' + ', '.join(afbud_list)
+                afmeldingsliste.save()
+                
+                return JsonResponse({'success': True, 'updated_afbud': afmeldingsliste.afbud})
             else:
-                afmeldingsliste.afbud = afbud_name
-
-            afmeldingsliste.save()
-            return redirect('front_page')
+                return JsonResponse({'success': False, 'error': 'Dette navn er allerede registreret.'})
         else:
-            # Pass an error message to the template
-            context = {
-                'afmeldingsliste': afmeldingsliste,
-                'error_message': 'Navnet kan ikke være tomt. Prøv igen.'
-            }
-            return render(request, 'front_page.html', context)
-
+            return JsonResponse({'success': False, 'error': 'Navnet kan ikke være tomt.'})
+    except Exception as e:
+        print(f"Error in append_afbud: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 def front_page(request):
     configuration = Configuration.objects.first()
@@ -189,3 +196,92 @@ def login(request):
 def afmeldingsliste_detail(request, afmeldingsliste_id):
     afmeldingsliste = get_object_or_404(Afmeldingsliste, id=afmeldingsliste_id)
     return render(request, 'afmeldingsliste_detail.html', {'afmeldingsliste': afmeldingsliste})
+
+def substitutlister(request):
+    configuration = Configuration.objects.first()
+    welcome_text = configuration.welcome_text if configuration else ''
+    
+    substitutlister = Substitutliste.objects.prefetch_related(
+        Prefetch(
+            'usersubstitutassignment_set',
+            queryset=UserSubstitutAssignment.objects.select_related('user'),
+            to_attr='assignments'
+        )
+    ).all()
+    weeks = Week.objects.all()
+    weeks = sorted(weeks, key=lambda week: int(week.name))  # Sort weeks by numeric value of name
+
+    # Mapping of English day names to Danish day names
+    day_name_mapping = {
+        'Monday': 'Mandag',
+        'Tuesday': 'Tirsdag',
+        'Wednesday': 'Onsdag',
+        'Thursday': 'Torsdag',
+        'Friday': 'Fredag',
+        'Saturday': 'Lørdag',
+        'Sunday': 'Søndag'
+    }
+
+    responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
+    responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in responsibilities}
+
+    for substitutliste in substitutlister:
+        substitutliste.day_of_week = substitutliste.day.strftime("%A")
+        day_name = substitutliste.day.strftime("%A")
+        day = Day.objects.get(name=day_name)
+        responsible_coordinator = responsibility_dict.get(day.name.lower())
+        if responsible_coordinator:
+            substitutliste.responsible_name = responsible_coordinator.get_full_name() or responsible_coordinator.username
+            substitutliste.responsible_email = responsible_coordinator.email
+        else:
+            substitutliste.responsible_name = "Not assigned"
+            substitutliste.responsible_email = ""
+
+        substitutliste.assigned_substitutter = [
+            {
+                'name': assignment.user.get_full_name() or assignment.user.username,
+                'phone': assignment.user.phone_number,
+                'note': assignment.user.custom_note,
+                'email': assignment.user.email,
+                'id': assignment.user.id,
+                'status': assignment.get_status_display(),  # This will use the Danish display name
+                'reservationsnote': assignment.reservationsnote,
+                'række': assignment.user.række.name if assignment.user.række else 'N/A'
+            }
+            for assignment in substitutliste.assignments
+        ]
+
+    context = {
+        'substitutlister': substitutlister,
+        'weeks': weeks,
+        'welcome_text': welcome_text,
+        'days': Day.objects.all(),
+        'day_name_mapping': day_name_mapping,
+    }
+
+    return render(request, 'substitutlister.html', context)
+
+def afmeldingslister(request):
+    afmeldingslister = Afmeldingsliste.objects.all()
+    afmeldingslister_data = [
+        {
+            'id': str(liste.id),
+            'name': liste.name,
+            'day': liste.day.isoformat(),
+            'deadline': liste.deadline.isoformat(),
+            'afbud': liste.afbud or ''
+        }
+        for liste in afmeldingslister
+    ]
+    context = {
+        'afmeldingslister': afmeldingslister,
+        'afmeldingslister_json': json.dumps(afmeldingslister_data),
+    }
+    return render(request, 'afmeldingslister.html', context)
+
+def tilmeldingslister(request):
+    context = {
+        'days': Day.objects.all(),
+        'day_name_mapping': {day.id: day.name for day in Day.objects.all()},
+    }
+    return render(request, 'tilmeldingslister.html', context)
