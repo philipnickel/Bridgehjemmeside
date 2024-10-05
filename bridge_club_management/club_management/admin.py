@@ -70,6 +70,9 @@ class ConfigurationAdminForm(forms.ModelForm):
         fields = "__all__"
         widgets = {
             "welcome_text": CKEditor5Widget(config_name='extends'),
+            "afmeldingslister_text": CKEditor5Widget(config_name='extends'),
+            "substitutlister_text": CKEditor5Widget(config_name='extends'),
+            "tilmeldingslister_text": CKEditor5Widget(config_name='extends'),
         }
 
 # ConfigurationAdmin to manage site configurations

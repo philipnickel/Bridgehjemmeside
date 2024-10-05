@@ -200,7 +200,7 @@ def afmeldingsliste_detail(request, afmeldingsliste_id):
 
 def substitutlister(request):
     configuration = Configuration.objects.first()
-    welcome_text = configuration.welcome_text if configuration else ''
+    substitutlister_text = configuration.substitutlister_text if configuration else ''
     
     substitutlister = Substitutliste.objects.prefetch_related(
         Prefetch(
@@ -251,11 +251,10 @@ def substitutlister(request):
             }
             for assignment in substitutliste.assignments
         ]
-
     context = {
         'substitutlister': substitutlister,
         'weeks': weeks,
-        'welcome_text': welcome_text,
+        'substitutlister_text': substitutlister_text,
         'days': Day.objects.all(),
         'day_name_mapping': day_name_mapping,
     }
@@ -264,6 +263,8 @@ def substitutlister(request):
 
 def afmeldingslister(request):
     afmeldingslister = Afmeldingsliste.objects.all()
+    configuration = Configuration.objects.first()
+    afmeldingslister_text = configuration.afmeldingslister_text if configuration else ''
     afmeldingslister_data = [
         {
             'id': str(liste.id),
@@ -277,10 +278,13 @@ def afmeldingslister(request):
     context = {
         'afmeldingslister': afmeldingslister,
         'afmeldingslister_json': json.dumps(afmeldingslister_data),
+        'afmeldingslister_text': afmeldingslister_text,
     }
     return render(request, 'afmeldingslister.html', context)
 
 def tilmeldingslister(request):
+    configuration = Configuration.objects.first()
+    tilmeldingslister_text = configuration.tilmeldingslister_text if configuration else ''
     tilmeldingslister = Tilmeldingsliste.objects.all().order_by('day')
     selected_list = tilmeldingslister.first() if tilmeldingslister else None
 
@@ -303,11 +307,11 @@ def tilmeldingslister(request):
 
         # Send email to the responsible person
         send_mail(
-            'Nyt par tilføjet til listen',
-            f'Et nyt par er blevet tilføjet til listen: {tilmeldingsliste.name}.\n\n'
-            f'Spiller 1: {player1_name}\n'
-            f'Spiller 2: {player2_name}\n'
-            f'Telefon: {phone_number}\n'
+            'New Pair Added to List',
+            f'A new pair has been added to the list: {tilmeldingsliste.name}.\n\n'
+            f'Player 1: {player1_name}\n'
+            f'Player 2: {player2_name}\n'
+            f'Phone: {phone_number}\n'
             f'Email: {email}\n',
             'from@example.com',
             [tilmeldingsliste.responsible_person.email],
@@ -322,5 +326,6 @@ def tilmeldingslister(request):
         'tilmeldte_par': TilmeldingslistePair.objects.filter(tilmeldingsliste=selected_list, på_venteliste=False),
         'venteliste_par': TilmeldingslistePair.objects.filter(tilmeldingsliste=selected_list, på_venteliste=True),
         'now': timezone.now(),
+        'tilmeldingslister_text': tilmeldingslister_text,
     }
     return render(request, 'tilmeldingslister.html', context)

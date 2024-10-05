@@ -14,6 +14,9 @@
   {% include 'navbar.html' %}
   <div class="container mx-auto my-8" x-data="{ formModalOpen: false }">
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
+      <div class="text-lg ck-content">{{ tilmeldingslister_text|safe }}</div>
+    </div>
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
       <h2 class="text-2xl font-bold mb-4">Tilmeldingslister</h2>
 
       <!-- Dropdown to select lists -->
@@ -32,9 +35,9 @@
       {% if selected_list %}
         <h3 class="text-xl font-bold">{{ selected_list.name }}</h3>
         <p><strong>Ansvarlig:</strong> {{ selected_list.responsible_person.username }} ({{ selected_list.responsible_person.email }})</p>
-        <p><strong>Telefonnummer:</strong> {{ selected_list.responsible_person.telefonnummer }}</p>
+        <p><strong>Tidspunkt:</strong> {{ selected_list.day}}</p>
         <p><strong>Frist:</strong> {{ selected_list.deadline }}</p>
-        <p><strong>Antal pladser:</strong> {{ selected_list.antal_par }}</p>
+        <p><strong>Antal pladser (par):</strong> {{ selected_list.antal_par }}</p>
 
         <!-- Tilmeldte par table -->
         <h3 class="text-lg font-bold mt-6">Tilmeldte Par</h3>

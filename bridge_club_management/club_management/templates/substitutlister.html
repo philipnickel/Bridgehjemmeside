@@ -17,6 +17,12 @@
 </head>
 <body class="bg-gray-100">
   {% include 'navbar.html' %}
+  <div class="container mx-auto my-8">
+    <!-- Jumbotron with Substitutlister Text -->
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
+      <div class="text-lg ck-content">{{ substitutlister_text|safe }}</div>
+    </div>
+  </div>
   <div class="container mx-auto my-8" x-data="substitutlister">
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
       <h2 class="text-2xl font-bold mb-4">Substitutlister</h2>

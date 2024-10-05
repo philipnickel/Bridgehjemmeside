@@ -162,14 +162,14 @@ class Configuration(models.Model):
     afmeldingslister_text = models.TextField(verbose_name=_("Afmeldingslister Tekst"), default="Default text")
     substitutlister_text = models.TextField(verbose_name=_("Substitutlister Tekst"), default="Default text")
     tilmeldingslister_text = models.TextField(verbose_name=_("Tilmeldingslister Tekst"), default="Default text")
-    name = models.CharField(verbose_name=_("Navn"),max_length=100, default="Forsidetekst")
+    name = models.CharField(verbose_name=_("Navn"),max_length=100, default="Brugerdefineret tekst")
 
     def __str__(self):
         return f"Velkomsttekst"
 
     class Meta:
-        verbose_name = "Forsidetekst"  # Change the verbose name of the model
-        verbose_name_plural = "Forsidetekst"  # Change the verbose plural name of the model
+        verbose_name = "Brugerdefineret tekst"  # Change the verbose name of the model
+        verbose_name_plural = "Brugerdefineret tekst"  # Change the verbose plural name of the model
 
 
 class Day(models.Model):
@@ -236,10 +236,3 @@ class TilmeldingslistePair(models.Model):
         verbose_name = "Tilmeldingsliste Par"
         verbose_name_plural = "Tilmeldingsliste Par"
 
-class CustomText(models.Model):
-    page_name = models.CharField(max_length=100, unique=True)
-    header_text = models.TextField(blank=True, null=True)
-    footer_text = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.page_name
