@@ -159,6 +159,9 @@ class Afmeldingsliste(models.Model):
 
 class Configuration(models.Model):
     welcome_text = models.TextField(verbose_name=_("Velkomsttekst"))
+    afmeldingslister_text = models.TextField(verbose_name=_("Afmeldingslister Tekst"), default="Default text")
+    substitutlister_text = models.TextField(verbose_name=_("Substitutlister Tekst"), default="Default text")
+    tilmeldingslister_text = models.TextField(verbose_name=_("Tilmeldingslister Tekst"), default="Default text")
     name = models.CharField(verbose_name=_("Navn"),max_length=100, default="Forsidetekst")
 
     def __str__(self):
@@ -232,3 +235,11 @@ class TilmeldingslistePair(models.Model):
     class Meta:
         verbose_name = "Tilmeldingsliste Par"
         verbose_name_plural = "Tilmeldingsliste Par"
+
+class CustomText(models.Model):
+    page_name = models.CharField(max_length=100, unique=True)
+    header_text = models.TextField(blank=True, null=True)
+    footer_text = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.page_name

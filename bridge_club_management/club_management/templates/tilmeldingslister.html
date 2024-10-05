@@ -1,41 +1,149 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="da">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tilmeldingslister</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.2.2/dist/cdn.min.js" defer></script>
+  <style>
+    [x-cloak] { display: none !important; }
+  </style>
 </head>
 <body class="bg-gray-100">
   {% include 'navbar.html' %}
-  <div class="container mx-auto my-8">
+  <div class="container mx-auto my-8" x-data="{ formModalOpen: false }">
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
       <h2 class="text-2xl font-bold mb-4">Tilmeldingslister</h2>
-      {% for tilmeldingsliste in tilmeldingslister %}
-      <div class="mb-4">
-        <h3 class="text-xl font-bold">{{ tilmeldingsliste.name }} - {{ tilmeldingsliste.day }}</h3>
-        <p><strong>Ansvarlig:</strong> {{ tilmeldingsliste.responsible_person }}</p>
-        <p><strong>Frist:</strong> {{ tilmeldingsliste.deadline }}</p>
-        <form method="post">
-          {% csrf_token %}
-          <input type="hidden" name="list_id" value="{{ tilmeldingsliste.id }}">
-          <div>
-            <label for="player1_name">Spiller 1 Navn:</label>
-            <input type="text" name="player1_name" required>
+
+      <!-- Dropdown to select lists -->
+      <form method="post" class="mb-4">
+        {% csrf_token %}
+        <label for="list_id" class="block text-lg font-medium text-gray-700">Vælg liste:</label>
+        <select name="list_id" id="list_id" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" onchange="this.form.submit()">
+          {% for liste in tilmeldingslister %}
+            <option value="{{ liste.id }}" {% if liste == selected_list %}selected{% endif %}>
+              {{ liste.name }} - {{ liste.day }}
+            </option>
+          {% endfor %}
+        </select>
+      </form>
+
+      {% if selected_list %}
+        <h3 class="text-xl font-bold">{{ selected_list.name }}</h3>
+        <p><strong>Ansvarlig:</strong> {{ selected_list.responsible_person.username }} ({{ selected_list.responsible_person.email }})</p>
+        <p><strong>Telefonnummer:</strong> {{ selected_list.responsible_person.telefonnummer }}</p>
+        <p><strong>Frist:</strong> {{ selected_list.deadline }}</p>
+        <p><strong>Antal pladser:</strong> {{ selected_list.antal_par }}</p>
+
+        <!-- Tilmeldte par table -->
+        <h3 class="text-lg font-bold mt-6">Tilmeldte Par</h3>
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parnummer</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Makker</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for pair in tilmeldte_par %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">{{ pair.parnummer }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ pair.navn }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ pair.makker }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Venteliste table -->
+        <h3 class="text-lg font-bold mt-6">Venteliste</h3>
+        <p class="text-sm text-gray-600">I tilfælde af for mange tilmeldte vil de ekstra par blive vist herunder. En anden grund til at blive placeret på venteliste er hvis der er et ulige antal tilmeldte par, så vil det sidst tilmeldte par blive sat på venteliste indtil der kommer endnu en tilmelding, således at der vil være et lige antal tilmeldte par.</p>
+        <table class="min-w-full divide-y divide-gray-200 mt-2">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parnummer</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Makker</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for pair in venteliste_par %}
+              <tr>
+                <td class="px-6 py-4 whitespace-nowrap">{{ pair.parnummer }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ pair.navn }}</td>
+                <td class="px-6 py-4 whitespace-nowrap">{{ pair.makker }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Conditional Button -->
+        {% if selected_list.deadline > now %}
+          <!-- Add pair button -->
+          <button @click="formModalOpen = true" class="mt-6 bg-blue-500 text-white px-4 py-2 rounded">Tilføj Par</button>
+        {% else %}
+          <!-- Deadline exceeded button -->
+          <button class="mt-6 bg-red-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>Frist overskredet</button>
+        {% endif %}
+
+        <!-- Add pair form modal -->
+        <div x-show="formModalOpen" @click.away="formModalOpen = false" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" x-cloak>
+          <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="absolute top-0 right-0 mt-4 mr-4">
+              <button @click="formModalOpen = false" class="text-gray-400 hover:text-gray-600">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            <h3 class="text-lg font-bold mb-4">Tilføj Par</h3>
+            <form method="post" class="space-y-4" onsubmit="return validateForm()">
+              {% csrf_token %}
+              <input type="hidden" name="list_id" value="{{ selected_list.id }}">
+              <div>
+                <label for="player1_name" class="block text-sm font-medium text-gray-700">Navn:</label>
+                <input type="text" name="player1_name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+              </div>
+              <div>
+                <label for="player2_name" class="block text-sm font-medium text-gray-700">Makker:</label>
+                <input type="text" name="player2_name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+              </div>
+              <div>
+                <label for="country_code" class="block text-sm font-medium text-gray-700">Landskode:</label>
+                <select name="country_code" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                  <option value="+45">+45</option>
+                  <option value="+46">+46</option>
+                  <option value="+47">+47</option>
+                  <!-- Add more country codes as needed -->
+                </select>
+              </div>
+              <div>
+                <label for="phone_number" class="block text-sm font-medium text-gray-700">Telefonnummer:</label>
+                <input type="text" name="phone_number" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" pattern="\d{8}" title="Telefonnummer skal være 8 cifre langt" required>
+              </div>
+              <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+                <input type="email" name="email" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+              </div>
+              <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Tilføj Par</button>
+            </form>
           </div>
-          <div>
-            <label for="player2_name">Spiller 2 Navn:</label>
-            <input type="text" name="player2_name" required>
-          </div>
-          <div>
-            <label for="contact_info">Kontaktinformation:</label>
-            <input type="text" name="contact_info" required>
-          </div>
-          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Tilmeld</button>
-        </form>
-      </div>
-      {% endfor %}
+        </div>
+      {% endif %}
     </div>
   </div>
+
+  <script>
+    function validateForm() {
+      const phoneInput = document.querySelector('input[name="phone_number"]');
+      if (!phoneInput.checkValidity()) {
+        alert('Telefonnummer skal være 8 cifre langt');
+        return false;
+      }
+      return true;
+    }
+  </script>
 </body>
 </html>

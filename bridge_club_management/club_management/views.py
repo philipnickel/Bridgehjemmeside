@@ -1,7 +1,7 @@
 # views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail
-from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment, Day, CustomUser, Tilmeldingsliste, Pair
+from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment, Day, CustomUser, Tilmeldingsliste, Pair, TilmeldingslistePair
 from django.contrib.auth.models import User
 from django.utils.dateformat import DateFormat
 import logging
@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.core.serializers import serialize
 import json
 from django.views.decorators.http import require_POST
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -280,23 +281,46 @@ def afmeldingslister(request):
     return render(request, 'afmeldingslister.html', context)
 
 def tilmeldingslister(request):
+    tilmeldingslister = Tilmeldingsliste.objects.all().order_by('day')
+    selected_list = tilmeldingslister.first() if tilmeldingslister else None
+
     if request.method == 'POST':
         list_id = request.POST.get('list_id')
         player1_name = request.POST.get('player1_name')
         player2_name = request.POST.get('player2_name')
-        contact_info = request.POST.get('contact_info')
+        phone_number = request.POST.get('phone_number')
+        email = request.POST.get('email')
 
         tilmeldingsliste = Tilmeldingsliste.objects.get(id=list_id)
-        if tilmeldingsliste.pairs.count() < 24:
-            pair = Pair.objects.create(player1_name=player1_name, player2_name=player2_name, contact_info=contact_info)
-            tilmeldingsliste.pairs.add(pair)
-        else:
-            # Handle waiting list logic here
-            pass  # Ensure there's some code here, even if it's just a pass statement
+        TilmeldingslistePair.objects.create(
+            tilmeldingsliste=tilmeldingsliste,
+            navn=player1_name,
+            makker=player2_name,
+            telefonnummer=phone_number,
+            email=email,
+            på_venteliste=False  # or True based on your logic
+        )
+
+        # Send email to the responsible person
+        send_mail(
+            'Nyt par tilføjet til listen',
+            f'Et nyt par er blevet tilføjet til listen: {tilmeldingsliste.name}.\n\n'
+            f'Spiller 1: {player1_name}\n'
+            f'Spiller 2: {player2_name}\n'
+            f'Telefon: {phone_number}\n'
+            f'Email: {email}\n',
+            'from@example.com',
+            [tilmeldingsliste.responsible_person.email],
+            fail_silently=False,
+        )
 
         return redirect('tilmeldingslister')
 
     context = {
-        'tilmeldingslister': Tilmeldingsliste.objects.all(),
+        'tilmeldingslister': tilmeldingslister,
+        'selected_list': selected_list,
+        'tilmeldte_par': TilmeldingslistePair.objects.filter(tilmeldingsliste=selected_list, på_venteliste=False),
+        'venteliste_par': TilmeldingslistePair.objects.filter(tilmeldingsliste=selected_list, på_venteliste=True),
+        'now': timezone.now(),
     }
     return render(request, 'tilmeldingslister.html', context)

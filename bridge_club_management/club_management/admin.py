@@ -126,3 +126,4 @@ class TilmeldingslisteAdmin(admin.ModelAdmin):
 
 # Ensure Pair is not registered separately
 # Remove any @admin.register(Pair) or similar lines
+
