@@ -1,11 +1,40 @@
 <nav class="bg-gray-800 shadow">
-  <div class="container mx-auto py-4 flex justify-between items-center">
-    <a href="{% url 'front_page' %}" class="text-white font-bold text-xl">Forside</a>
-    <ul class="ml-auto flex space-x-4">
-      <li><a href="{% url 'substitutlister' %}" class="text-gray-200">Substitutlister</a></li>
-      <li><a href="{% url 'afmeldingslister' %}" class="text-gray-200">Afmeldingslister</a></li>
-      <li><a href="{% url 'tilmeldingslister' %}" class="text-gray-200">Tilmeldingslister</a></li>
-      <li><a href="{% url 'admin:index' %}" class="text-gray-200">Login</a></li>
-    </ul>
+  <div class="container mx-auto px-4 py-2">
+    <div class="flex justify-between items-center">
+      <a href="{% url 'front_page' %}" class="text-white font-bold text-xl">Forside</a>
+      
+      <!-- Mobile menu button -->
+      <div class="md:hidden">
+        <button id="mobile-menu-button" class="text-gray-200 hover:text-white focus:outline-none focus:text-white">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Desktop menu -->
+      <ul class="hidden md:flex md:space-x-4">
+        <li><a href="{% url 'substitutlister' %}" class="text-gray-200 hover:text-white">Substitutlister</a></li>
+        <li><a href="{% url 'afmeldingslister' %}" class="text-gray-200 hover:text-white">Afmeldingslister</a></li>
+        <li><a href="{% url 'tilmeldingslister' %}" class="text-gray-200 hover:text-white">Tilmeldingslister</a></li>
+        <li><a href="{% url 'admin:index' %}" class="text-gray-200 hover:text-white">Login</a></li>
+      </ul>
+    </div>
+    
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden mt-2">
+      <ul class="space-y-2">
+        <li><a href="{% url 'substitutlister' %}" class="block text-gray-200 hover:text-white">Substitutlister</a></li>
+        <li><a href="{% url 'afmeldingslister' %}" class="block text-gray-200 hover:text-white">Afmeldingslister</a></li>
+        <li><a href="{% url 'tilmeldingslister' %}" class="block text-gray-200 hover:text-white">Tilmeldingslister</a></li>
+        <li><a href="{% url 'admin:index' %}" class="block text-gray-200 hover:text-white">Login</a></li>
+      </ul>
+    </div>
   </div>
 </nav>
+
+<script>
+  document.getElementById('mobile-menu-button').addEventListener('click', function() {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+  });
+</script>
