@@ -42,46 +42,68 @@
 
           <!-- Tilmeldte par table -->
           <h3 class="text-lg font-bold mt-6">Tilmeldte Par</h3>
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parnummer</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Makker</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              {% for pair in liste.tilmeldte_par %}
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 hidden md:table">
+              <thead class="bg-gray-50">
                 <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">{{ pair.parnummer }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">{{ pair.navn }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">{{ pair.makker }}</td>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parnummer</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Makker</th>
                 </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for pair in liste.tilmeldte_par %}
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ pair.parnummer }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ pair.navn }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ pair.makker }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="md:hidden">
+              {% for pair in liste.tilmeldte_par %}
+                <div class="bg-white shadow-md rounded-lg p-4 mb-4">
+                  <p><strong>Parnummer:</strong> {{ pair.parnummer }}</p>
+                  <p><strong>Navn:</strong> {{ pair.navn }}</p>
+                  <p><strong>Makker:</strong> {{ pair.makker }}</p>
+                </div>
               {% endfor %}
-            </tbody>
-          </table>
+            </div>
+          </div>
 
           <!-- Venteliste table -->
           <h3 class="text-lg font-bold mt-6">Venteliste</h3>
-          <p class="text-sm text-gray-600">I tilfælde af for mange tilmeldte vil de ekstra par blive vist herunder. En anden grund til at blive placeret på venteliste er hvis der er et ulige antal tilmeldte par, så vil det sidst tilmeldte par blive sat på venteliste indtil der kommer endnu en tilmelding, således at der vil være et lige antal tilmeldte par.</p>
-          <table class="min-w-full divide-y divide-gray-200 mt-2">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parnummer</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Makker</th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              {% for pair in liste.venteliste_par %}
+          <p class="text-sm text-gray-600 mb-4">I tilfælde af for mange tilmeldte vil de ekstra par blive vist herunder. En anden grund til at blive placeret på venteliste er hvis der er et ulige antal tilmeldte par, så vil det sidst tilmeldte par blive sat på venteliste indtil der kommer endnu en tilmelding, således at der vil være et lige antal tilmeldte par.</p>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 hidden md:table">
+              <thead class="bg-gray-50">
                 <tr>
-                  <td class="px-6 py-4 whitespace-nowrap">{{ pair.parnummer }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">{{ pair.navn }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap">{{ pair.makker }}</td>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parnummer</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Makker</th>
                 </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                {% for pair in liste.venteliste_par %}
+                  <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ pair.parnummer }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ pair.navn }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ pair.makker }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <div class="md:hidden">
+              {% for pair in liste.venteliste_par %}
+                <div class="bg-white shadow-md rounded-lg p-4 mb-4">
+                  <p><strong>Parnummer:</strong> {{ pair.parnummer }}</p>
+                  <p><strong>Navn:</strong> {{ pair.navn }}</p>
+                  <p><strong>Makker:</strong> {{ pair.makker }}</p>
+                </div>
               {% endfor %}
-            </tbody>
-          </table>
+            </div>
+          </div>
 
           <!-- Spillere uden makker table -->
           <h3 class="text-lg font-bold mt-6">Spillere uden makker</h3>
