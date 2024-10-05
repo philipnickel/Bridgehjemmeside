@@ -287,7 +287,7 @@
         <h3 class="text-xl font-bold mb-2">{{ afmeldingsliste.name }}</h3>
         <p class="mb-1"><strong>Dag:</strong> {{ afmeldingsliste.day|date:"l, d F Y" }}</p>
         <p class="mb-1"><strong>Frist:</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
-        <p class="mb-1"><strong>Afbud:</strong> {{ afmeldingsliste.afbud }}</p>
+        <p class="mb-1"><strong>Afbud:</strong> {% if afmeldingsliste.afbud %}{{ afmeldingsliste.afbud|cut:"Afbud: " }}{% endif %}</p>
 
         {% now "Y-m-d H:i:s" as current_datetime %}
         {% if current_datetime > afmeldingsliste.deadline|date:"Y-m-d H:i:s" %}
@@ -296,10 +296,10 @@
           </div>
         {% else %}
           <!-- Form to Append Afbud -->
-          <form action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
+          <form onsubmit="submitAfbud(event, '{{ afmeldingsliste.id }}')" action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
             {% csrf_token %}
-            <label for="afbud-name" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
-            <input type="text" id="afbud-name" name="afbud_name"
+            <label for="afbud-name-{{ afmeldingsliste.id }}" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
+            <input type="text" id="afbud-name-{{ afmeldingsliste.id }}" name="afbud_name"
               class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               placeholder="Indtast navn">
             <button type="submit"
@@ -476,7 +476,6 @@
         Alpine.data('afmeldingslister', () => ({
           selectedAfmeldingsliste: '',
           init() {
-            // Initialize with the first afmeldingsliste
             const firstAfmeldingsliste = document.querySelector('#afmeldingsliste-selector option');
             if (firstAfmeldingsliste) {
               this.selectedAfmeldingsliste = firstAfmeldingsliste.value;
@@ -488,7 +487,57 @@
             // It's also called on init to show the first afmeldingsliste
           }
         }));
-      })
+      });
+
+      function submitAfbud(event, afmeldingslisteId) {
+        event.preventDefault();
+        const form = event.target;
+        const input = form.querySelector('input[name="afbud_name"]');
+        const afbudName = input.value.trim();
+
+        if (!afbudName) {
+          alert('Indtast venligst et navn');
+          return;
+        }
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+          }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.success) {
+            // Update the afbud display
+            const afbudContainer = form.closest('.mb-4');
+            const afbudDisplay = afbudContainer.querySelector('p:nth-child(4)');
+            if (afbudDisplay) {
+              const updatedAfbud = data.updated_afbud.replace(/^Afbud:\s*/, '');
+              afbudDisplay.innerHTML = `<strong>Afbud:</strong> ${updatedAfbud}`;
+            } else {
+              console.error('Could not find afbud display element');
+            }
+            input.value = '';
+            alert('Afbud er blevet registreret');
+          } else {
+            console.error('Server error:', data.error);
+            alert(data.error || 'Der opstod en fejl. Prøv igen.');
+          }
+        })
+        .catch(error => {
+          console.error('Fetch error:', error);
+          alert('Der opstod en uventet fejl. Prøv venligst igen. Detaljer: ' + error.message);
+        });
+      }
     </script>
 
   </div>

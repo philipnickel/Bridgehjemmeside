@@ -5,21 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tilmeldingslister</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <style>
-    [x-cloak] { display: none !important; }
-    .ck-content ul, .text-lg ul { list-style-type: disc; padding-left: 2em; }
-    .ck-content ol, .text-lg ol { list-style-type: decimal; padding-left: 2em; }
-    .ck-content li, .text-lg li { display: list-item; }
-  </style>
 </head>
 <body class="bg-gray-100">
   {% include 'navbar.html' %}
   <div class="container mx-auto my-8">
-    <!-- Tilmeldingslister Section -->
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
       <h2 class="text-2xl font-bold mb-4">Tilmeldingslister</h2>
-      <!-- Content for tilmeldingslister will go here -->
+      {% for tilmeldingsliste in tilmeldingslister %}
+      <div class="mb-4">
+        <h3 class="text-xl font-bold">{{ tilmeldingsliste.name }} - {{ tilmeldingsliste.day }}</h3>
+        <p><strong>Ansvarlig:</strong> {{ tilmeldingsliste.responsible_person }}</p>
+        <p><strong>Frist:</strong> {{ tilmeldingsliste.deadline }}</p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="list_id" value="{{ tilmeldingsliste.id }}">
+          <div>
+            <label for="player1_name">Spiller 1 Navn:</label>
+            <input type="text" name="player1_name" required>
+          </div>
+          <div>
+            <label for="player2_name">Spiller 2 Navn:</label>
+            <input type="text" name="player2_name" required>
+          </div>
+          <div>
+            <label for="contact_info">Kontaktinformation:</label>
+            <input type="text" name="contact_info" required>
+          </div>
+          <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Tilmeld</button>
+        </form>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </body>

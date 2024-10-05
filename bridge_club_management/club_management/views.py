@@ -1,7 +1,7 @@
 # views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail
-from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment, Day, CustomUser
+from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment, Day, CustomUser, Tilmeldingsliste, Pair
 from django.contrib.auth.models import User
 from django.utils.dateformat import DateFormat
 import logging
@@ -280,8 +280,23 @@ def afmeldingslister(request):
     return render(request, 'afmeldingslister.html', context)
 
 def tilmeldingslister(request):
+    if request.method == 'POST':
+        list_id = request.POST.get('list_id')
+        player1_name = request.POST.get('player1_name')
+        player2_name = request.POST.get('player2_name')
+        contact_info = request.POST.get('contact_info')
+
+        tilmeldingsliste = Tilmeldingsliste.objects.get(id=list_id)
+        if tilmeldingsliste.pairs.count() < 24:
+            pair = Pair.objects.create(player1_name=player1_name, player2_name=player2_name, contact_info=contact_info)
+            tilmeldingsliste.pairs.add(pair)
+        else:
+            # Handle waiting list logic here
+            pass  # Ensure there's some code here, even if it's just a pass statement
+
+        return redirect('tilmeldingslister')
+
     context = {
-        'days': Day.objects.all(),
-        'day_name_mapping': {day.id: day.name for day in Day.objects.all()},
+        'tilmeldingslister': Tilmeldingsliste.objects.all(),
     }
     return render(request, 'tilmeldingslister.html', context)

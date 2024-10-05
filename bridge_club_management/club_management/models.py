@@ -195,3 +195,30 @@ class DayResponsibility(models.Model):
 def update_assignments_on_save(sender, instance, created, **kwargs):
     if not created:
         instance.update_assignments()
+
+class Tilmeldingsliste(models.Model):
+    name = models.CharField(_("Navn"), max_length=100, default="unknown")
+    day = models.DateField(_("Dag"))
+    deadline = models.DateTimeField(_("Deadline"))
+    responsible_person = models.ForeignKey(User, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
+    # Temporarily remove the pairs field
+    # pairs = models.ManyToManyField('Pair', through='TilmeldingslistePair', blank=True)
+
+    class Meta:
+        verbose_name = "Tilmeldingsliste"
+        verbose_name_plural = "Tilmeldingslister"
+
+    def __str__(self):
+        return f"{self.name} - {self.day}"
+
+class Pair(models.Model):
+    navn = models.CharField(_("Navn"), max_length=100, default="Unknown")
+    makker = models.CharField(_("Makker"), max_length=100, blank=True, null=True)
+    contact_info = models.CharField(_("Kontaktinformation"), max_length=100)
+
+    def __str__(self):
+        return f"{self.navn} & {self.makker or 'Ingen Makker'}"
+
+class TilmeldingslistePair(models.Model):
+    tilmeldingsliste = models.ForeignKey(Tilmeldingsliste, on_delete=models.CASCADE)
+    pair = models.ForeignKey(Pair, on_delete=models.CASCADE)
