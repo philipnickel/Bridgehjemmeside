@@ -6,6 +6,7 @@ import logging
 from django.utils.translation import gettext as _
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from model_utils import FieldTracker
 
 logger = logging.getLogger(__name__)
 
@@ -159,14 +160,17 @@ class Afmeldingsliste(models.Model):
 
 class Configuration(models.Model):
     welcome_text = models.TextField(verbose_name=_("Velkomsttekst"))
-    name = models.CharField(verbose_name=_("Navn"),max_length=100, default="Forsidetekst")
+    afmeldingslister_text = models.TextField(verbose_name=_("Afmeldingslister Tekst"), default="Default text")
+    substitutlister_text = models.TextField(verbose_name=_("Substitutlister Tekst"), default="Default text")
+    tilmeldingslister_text = models.TextField(verbose_name=_("Tilmeldingslister Tekst"), default="Default text")
+    name = models.CharField(verbose_name=_("Navn"),max_length=100, default="Brugerdefineret tekst")
 
     def __str__(self):
         return f"Velkomsttekst"
 
     class Meta:
-        verbose_name = "Forsidetekst"  # Change the verbose name of the model
-        verbose_name_plural = "Forsidetekst"  # Change the verbose plural name of the model
+        verbose_name = "Brugerdefineret tekst"  # Change the verbose name of the model
+        verbose_name_plural = "Brugerdefineret tekst"  # Change the verbose plural name of the model
 
 
 class Day(models.Model):
@@ -195,3 +199,53 @@ class DayResponsibility(models.Model):
 def update_assignments_on_save(sender, instance, created, **kwargs):
     if not created:
         instance.update_assignments()
+
+class Tilmeldingsliste(models.Model):
+    name = models.CharField(_("Navn"), max_length=100, default="unknown")
+    day = models.DateField(_("Dag"))
+    deadline = models.DateTimeField(_("Deadline"))
+    responsible_person = models.ForeignKey(User, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
+    antal_par = models.IntegerField(_("Antal Par"), default=24)
+
+    class Meta:
+        verbose_name = "Tilmeldingsliste"
+        verbose_name_plural = "Tilmeldingslister"
+
+    def __str__(self):
+        return f"{self.name} - {self.day}"
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old_instance = Tilmeldingsliste.objects.get(pk=self.pk)
+            old_antal_par = old_instance.antal_par
+            super().save(*args, **kwargs)
+            if self.antal_par > old_antal_par:
+                from .signals import move_pairs_from_waiting_list
+                move_pairs_from_waiting_list(self)
+        else:
+            super().save(*args, **kwargs)
+
+class Pair(models.Model):
+    navn = models.CharField(_("Navn"), max_length=100, default="Unknown")
+    makker = models.CharField(_("Makker"), max_length=100, blank=True, null=True)
+    contact_info = models.CharField(_("Kontaktinformation"), max_length=100)
+
+    def __str__(self):
+        return f"{self.navn} & {self.makker or 'Ingen Makker'}"
+
+class TilmeldingslistePair(models.Model):
+    tilmeldingsliste = models.ForeignKey(Tilmeldingsliste, on_delete=models.CASCADE)
+    navn = models.CharField(_("Navn"), max_length=100, default="Unknown", blank=True, null=True)
+    makker = models.CharField(_("Makker"), max_length=100, blank=True, null=True)
+    telefonnummer = models.CharField(_("Telefonnummer"), max_length=15, blank=True, null=True)
+    email = models.EmailField(_("Email"), blank=True, null=True)
+    på_venteliste = models.BooleanField(_("På Venteliste"), default=False)
+    parnummer = models.IntegerField(_("Parnummer"), blank=True, null=True)
+    is_single = models.BooleanField(_("Uden makker"), default=False)  # Add this line
+
+    def __str__(self):
+        return f"{self.navn} & {self.makker or 'Ingen Makker'}"
+
+    class Meta:
+        verbose_name = "Tilmeldingsliste Par"
+        verbose_name_plural = "Tilmeldingsliste Par"

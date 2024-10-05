@@ -2,6 +2,7 @@ from django_ckeditor_5.widgets import CKEditor5Widget
 from django import forms
 from django.contrib import admin
 from django.db.models import Q
+from django.contrib.auth.models import User  # Import the User model
 from .forms import CustomUserForm
 from .models import (
     Afmeldingsliste,
@@ -16,6 +17,7 @@ from .models import (
 )
 
 import logging
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -68,6 +70,9 @@ class ConfigurationAdminForm(forms.ModelForm):
         fields = "__all__"
         widgets = {
             "welcome_text": CKEditor5Widget(config_name='extends'),
+            "afmeldingslister_text": CKEditor5Widget(config_name='extends'),
+            "substitutlister_text": CKEditor5Widget(config_name='extends'),
+            "tilmeldingslister_text": CKEditor5Widget(config_name='extends'),
         }
 
 # ConfigurationAdmin to manage site configurations
@@ -92,3 +97,36 @@ admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Substitutliste, SubstitutlisteAdmin)
 admin.site.register(Afmeldingsliste, AfmeldingslisteAdmin)
 admin.site.register(UserSubstitutAssignment)  # Register the new model
+
+from .models import Tilmeldingsliste, Pair, TilmeldingslistePair
+
+class TilmeldingslistePairInline(admin.TabularInline):
+    model = TilmeldingslistePair
+    extra = 0
+    fields = ('navn', 'makker', 'telefonnummer', 'email', 'på_venteliste', 'parnummer')
+    verbose_name = "Tilmeldingsliste-pair-relation"
+    verbose_name_plural = "Tilmeldingsliste-pair-relationer"
+    can_delete = True
+
+@admin.register(Tilmeldingsliste)
+class TilmeldingslisteAdmin(admin.ModelAdmin):
+    list_display = ('name', 'day', 'deadline', 'responsible_person')
+    search_fields = ('name', 'responsible_person__username')
+    list_filter = ('day',)
+    inlines = [TilmeldingslistePairInline]
+    exclude = ('pairs',)  # Exclude the pairs field from the form
+
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields['day'].initial = timezone.now().date()
+        form.base_fields['deadline'].initial = timezone.now()
+        return form
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "responsible_person":
+            kwargs["queryset"] = User.objects.filter(is_staff=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+# Ensure Pair is not registered separately
+# Remove any @admin.register(Pair) or similar lines
+
