@@ -222,7 +222,7 @@ class Pair(models.Model):
 
 class TilmeldingslistePair(models.Model):
     tilmeldingsliste = models.ForeignKey(Tilmeldingsliste, on_delete=models.CASCADE)
-    navn = models.CharField(_("Navn"), max_length=100, default="Unknown")
+    navn = models.CharField(_("Navn"), max_length=100, default="Unknown", blank=True, null=True)
     makker = models.CharField(_("Makker"), max_length=100, blank=True, null=True)
     telefonnummer = models.CharField(_("Telefonnummer"), max_length=15, blank=True, null=True)
     email = models.EmailField(_("Email"), blank=True, null=True)

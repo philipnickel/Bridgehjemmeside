@@ -1,7 +1,9 @@
 # views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail
-from .models import Configuration, Substitutliste, Afmeldingsliste, Week, DayResponsibility, UserSubstitutAssignment, Day, CustomUser, Tilmeldingsliste, Pair, TilmeldingslistePair
+from .models import (Configuration, Substitutliste, Afmeldingsliste, Week, 
+                     DayResponsibility, UserSubstitutAssignment, Day, CustomUser, 
+                     Tilmeldingsliste, Pair, TilmeldingslistePair)
 from django.contrib.auth.models import User
 from django.utils.dateformat import DateFormat
 import logging
@@ -13,6 +15,7 @@ from django.core.serializers import serialize
 import json
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.db.models import F, ExpressionWrapper, fields
 
 logger = logging.getLogger(__name__)
 
@@ -282,11 +285,17 @@ def afmeldingslister(request):
     }
     return render(request, 'afmeldingslister.html', context)
 
-def tilmeldingslister(request):
+def tilmeldingslister_view(request):
+    tilmeldingslister = Tilmeldingsliste.objects.all().order_by('day')
     configuration = Configuration.objects.first()
     tilmeldingslister_text = configuration.tilmeldingslister_text if configuration else ''
-    tilmeldingslister = Tilmeldingsliste.objects.all().order_by('day')
-    selected_list = tilmeldingslister.first() if tilmeldingslister else None
+    
+    for liste in tilmeldingslister:
+        liste.tilmeldte_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=False).order_by('parnummer')
+        liste.venteliste_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=True).order_by('parnummer')
+
+    selected_list_id = request.GET.get('selected_list_id') or request.POST.get('list_id')
+    selected_list = None
 
     if request.method == 'POST':
         list_id = request.POST.get('list_id')
@@ -294,38 +303,38 @@ def tilmeldingslister(request):
         player2_name = request.POST.get('player2_name')
         phone_number = request.POST.get('phone_number')
         email = request.POST.get('email')
-
-        tilmeldingsliste = Tilmeldingsliste.objects.get(id=list_id)
-        TilmeldingslistePair.objects.create(
+        
+        tilmeldingsliste = get_object_or_404(Tilmeldingsliste, id=list_id)
+        
+        # Check if the list is full
+        current_pairs = TilmeldingslistePair.objects.filter(tilmeldingsliste=tilmeldingsliste, på_venteliste=False).count()
+        på_venteliste = current_pairs >= tilmeldingsliste.antal_par
+        
+        # Create new TilmeldingslistePair
+        new_pair = TilmeldingslistePair.objects.create(
             tilmeldingsliste=tilmeldingsliste,
             navn=player1_name,
             makker=player2_name,
             telefonnummer=phone_number,
             email=email,
-            på_venteliste=False  # or True based on your logic
+            på_venteliste=på_venteliste,
+            parnummer=current_pairs + 1
         )
+        
+        messages.success(request, 'Par tilføjet til listen.')
+        return redirect(f'{reverse("tilmeldingslister")}?selected_list_id={list_id}')
 
-        # Send email to the responsible person
-        send_mail(
-            'New Pair Added to List',
-            f'A new pair has been added to the list: {tilmeldingsliste.name}.\n\n'
-            f'Player 1: {player1_name}\n'
-            f'Player 2: {player2_name}\n'
-            f'Phone: {phone_number}\n'
-            f'Email: {email}\n',
-            'from@example.com',
-            [tilmeldingsliste.responsible_person.email],
-            fail_silently=False,
-        )
-
-        return redirect('tilmeldingslister')
+    if selected_list_id:
+        selected_list = get_object_or_404(Tilmeldingsliste, id=selected_list_id)
+    else:
+        # Select the first upcoming list (or the last past list if all are in the past)
+        today = timezone.now().date()
+        selected_list = tilmeldingslister.filter(day__gte=today).first() or tilmeldingslister.last()
 
     context = {
         'tilmeldingslister': tilmeldingslister,
         'selected_list': selected_list,
-        'tilmeldte_par': TilmeldingslistePair.objects.filter(tilmeldingsliste=selected_list, på_venteliste=False),
-        'venteliste_par': TilmeldingslistePair.objects.filter(tilmeldingsliste=selected_list, på_venteliste=True),
-        'now': timezone.now(),
         'tilmeldingslister_text': tilmeldingslister_text,
+        'now': timezone.now(),
     }
     return render(request, 'tilmeldingslister.html', context)
