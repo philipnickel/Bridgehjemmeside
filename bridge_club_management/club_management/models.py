@@ -205,7 +205,7 @@ class Tilmeldingsliste(models.Model):
     day = models.DateField(_("Dag"))
     deadline = models.DateTimeField(_("Deadline"))
     responsible_person = models.ForeignKey(User, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
-    antal_par = models.IntegerField(_("Antal Par"), default=5)
+    antal_par = models.IntegerField(_("Antal Par"), default=24)
 
     class Meta:
         verbose_name = "Tilmeldingsliste"
