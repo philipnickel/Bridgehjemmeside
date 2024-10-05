@@ -320,7 +320,22 @@ def tilmeldingslister_view(request):
             på_venteliste=på_venteliste,
             parnummer=current_pairs + 1
         )
+
+        # Send email to the responsible person
+        subject = f'Nyt par tilmeldt til {tilmeldingsliste.name}'
+        message = f"""
+        Et nyt par er blevet tilmeldt til {tilmeldingsliste.name} ({tilmeldingsliste.day}).
         
+        Detaljer:
+        Navn: {player1_name}
+        Makker: {player2_name}
+        Telefon: {phone_number}
+        Email: {email}
+        På venteliste: {'Ja' if på_venteliste else 'Nej'}
+        """
+        responsible_email = tilmeldingsliste.responsible_person.email
+        send_mail(subject, message, 'from@example.com', [responsible_email])
+
         messages.success(request, 'Par tilføjet til listen.')
         return redirect(f'{reverse("tilmeldingslister")}?selected_list_id={list_id}')
 
