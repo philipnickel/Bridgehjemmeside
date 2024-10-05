@@ -99,8 +99,8 @@ from .models import Tilmeldingsliste, Pair, TilmeldingslistePair
 
 class TilmeldingslistePairInline(admin.TabularInline):
     model = TilmeldingslistePair
-    extra = 1
-    fields = ('pair',)
+    extra = 0
+    fields = ('navn', 'makker', 'telefonnummer', 'email', 'på_venteliste', 'parnummer')
     verbose_name = "Tilmeldingsliste-pair-relation"
     verbose_name_plural = "Tilmeldingsliste-pair-relationer"
     can_delete = True

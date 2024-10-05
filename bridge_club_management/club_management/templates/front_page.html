@@ -288,7 +288,6 @@
         <p class="mb-1"><strong>Dag:</strong> {{ afmeldingsliste.day|date:"l, d F Y" }}</p>
         <p class="mb-1"><strong>Frist:</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
         <p class="mb-1"><strong>Afbud:</strong> {% if afmeldingsliste.afbud %}{{ afmeldingsliste.afbud|cut:"Afbud: " }}{% endif %}</p>
-        <p class="mb-1"><strong>Afbud:</strong> {% if afmeldingsliste.afbud %}{{ afmeldingsliste.afbud|cut:"Afbud: " }}{% endif %}</p>
 
         {% now "Y-m-d H:i:s" as current_datetime %}
         {% if current_datetime > afmeldingsliste.deadline|date:"Y-m-d H:i:s" %}

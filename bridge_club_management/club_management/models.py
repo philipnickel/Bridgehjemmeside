@@ -201,8 +201,7 @@ class Tilmeldingsliste(models.Model):
     day = models.DateField(_("Dag"))
     deadline = models.DateTimeField(_("Deadline"))
     responsible_person = models.ForeignKey(User, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
-    # Temporarily remove the pairs field
-    # pairs = models.ManyToManyField('Pair', through='TilmeldingslistePair', blank=True)
+    antal_par = models.IntegerField(_("Antal Par"), default=5)  # New field
 
     class Meta:
         verbose_name = "Tilmeldingsliste"
@@ -210,7 +209,6 @@ class Tilmeldingsliste(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.day}"
-
 class Pair(models.Model):
     navn = models.CharField(_("Navn"), max_length=100, default="Unknown")
     makker = models.CharField(_("Makker"), max_length=100, blank=True, null=True)
@@ -221,4 +219,16 @@ class Pair(models.Model):
 
 class TilmeldingslistePair(models.Model):
     tilmeldingsliste = models.ForeignKey(Tilmeldingsliste, on_delete=models.CASCADE)
-    pair = models.ForeignKey(Pair, on_delete=models.CASCADE)
+    navn = models.CharField(_("Navn"), max_length=100, default="Unknown")
+    makker = models.CharField(_("Makker"), max_length=100, blank=True, null=True)
+    telefonnummer = models.CharField(_("Telefonnummer"), max_length=15, blank=True, null=True)
+    email = models.EmailField(_("Email"), blank=True, null=True)
+    på_venteliste = models.BooleanField(_("På Venteliste"), default=False)
+    parnummer = models.IntegerField(_("Parnummer"), blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.navn} & {self.makker or 'Ingen Makker'}"
+
+    class Meta:
+        verbose_name = "Tilmeldingsliste Par"
+        verbose_name_plural = "Tilmeldingsliste Par"
