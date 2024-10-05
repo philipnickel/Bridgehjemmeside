@@ -291,8 +291,10 @@ def tilmeldingslister_view(request):
     tilmeldingslister_text = configuration.tilmeldingslister_text if configuration else ''
     
     for liste in tilmeldingslister:
-        liste.tilmeldte_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=False).order_by('parnummer')
-        liste.venteliste_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=True).order_by('parnummer')
+        liste.tilmeldte_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=False, is_single=False).order_by('parnummer')
+        liste.venteliste_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=True, is_single=False).order_by('parnummer')
+        liste.single_players = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, is_single=True).order_by('id')
+        liste.all_pairs = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, is_single=False).order_by('parnummer')
 
     selected_list_id = request.GET.get('selected_list_id') or request.POST.get('list_id')
     selected_list = None
@@ -303,40 +305,94 @@ def tilmeldingslister_view(request):
         player2_name = request.POST.get('player2_name')
         phone_number = request.POST.get('phone_number')
         email = request.POST.get('email')
+        is_single = request.POST.get('is_single') == 'true'
         
         tilmeldingsliste = get_object_or_404(Tilmeldingsliste, id=list_id)
-        
-        # Check if the list is full
-        current_pairs = TilmeldingslistePair.objects.filter(tilmeldingsliste=tilmeldingsliste, på_venteliste=False).count()
-        på_venteliste = current_pairs >= tilmeldingsliste.antal_par
-        
-        # Create new TilmeldingslistePair
-        new_pair = TilmeldingslistePair.objects.create(
-            tilmeldingsliste=tilmeldingsliste,
-            navn=player1_name,
-            makker=player2_name,
-            telefonnummer=phone_number,
-            email=email,
-            på_venteliste=på_venteliste,
-            parnummer=current_pairs + 1
-        )
+
+        other_single = None  # Initialize other_single
+        if is_single:
+            # Check if there's another single player
+            other_single = TilmeldingslistePair.objects.filter(tilmeldingsliste=tilmeldingsliste, is_single=True).first()
+            
+            if other_single:
+                # Pair up the players
+                new_pair = TilmeldingslistePair.objects.create(
+                    tilmeldingsliste=tilmeldingsliste,
+                    navn=other_single.navn,
+                    makker=player1_name,
+                    telefonnummer=other_single.telefonnummer,
+                    email=other_single.email,
+                    is_single=False
+                )
+                other_single.delete()
+            else:
+                # Add as a single player
+                new_pair = TilmeldingslistePair.objects.create(
+                    tilmeldingsliste=tilmeldingsliste,
+                    navn=player1_name,
+                    telefonnummer=phone_number,
+                    email=email,
+                    is_single=True
+                )
+        else:
+            # Add as a pair
+            new_pair = TilmeldingslistePair.objects.create(
+                tilmeldingsliste=tilmeldingsliste,
+                navn=player1_name,
+                makker=player2_name,
+                telefonnummer=phone_number,
+                email=email,
+                is_single=False
+            )
+
+        # The signal handler will determine if the pair should be on the waiting list
+        på_venteliste = new_pair.på_venteliste
+
+        subject = f"Tilmelding til {tilmeldingsliste.name}"
+        if is_single and not other_single:
+            message = f"""
+            Hej {player1_name},
+
+            Du er blevet tilmeldt til {tilmeldingsliste.name} den {tilmeldingsliste.day}.
+            Du er blevet tilføjet som single spiller.
+            {"Du er på ventelisten." if på_venteliste else ""}
+
+            Telefon: {phone_number}
+            Email: {email}
+            På venteliste: {'Ja' if på_venteliste else 'Nej'}
+            """
+        else:
+            message = f"""
+            Hej {player1_name}{f" og {player2_name}" if not is_single else ""},
+
+            {"I" if not is_single else "Du"} er blevet tilmeldt til {tilmeldingsliste.name} den {tilmeldingsliste.day}.
+            {"Du er blevet parret op med en anden spiller." if is_single and other_single else ""}
+            {"I er på ventelisten." if på_venteliste else ""}
+
+            Telefon: {phone_number}
+            Email: {email}
+            På venteliste: {'Ja' if på_venteliste else 'Nej'}
+            """
+
+        send_mail(subject, message, 'from@example.com', [email])
+
+        messages.success(request, 'Du er blevet tilmeldt. Check din email for detaljer.')
 
         # Send email to the responsible person
-        subject = f'Nyt par tilmeldt til {tilmeldingsliste.name}'
+        subject = f'Ny tilmelding til {tilmeldingsliste.name}'
         message = f"""
-        Et nyt par er blevet tilmeldt til {tilmeldingsliste.name} ({tilmeldingsliste.day}).
+        En ny tilmelding er blevet registreret til {tilmeldingsliste.name} ({tilmeldingsliste.day}).
         
         Detaljer:
         Navn: {player1_name}
-        Makker: {player2_name}
+        {'Makker: ' + player2_name if not is_single else 'Single spiller'}
         Telefon: {phone_number}
         Email: {email}
-        På venteliste: {'Ja' if på_venteliste else 'Nej'}
+        På venteliste: {'Ja' if på_venteliste else 'Nej'} {'(kun relevant for par)' if is_single else ''}
         """
         responsible_email = tilmeldingsliste.responsible_person.email
         send_mail(subject, message, 'from@example.com', [responsible_email])
 
-        messages.success(request, 'Par tilføjet til listen.')
         return redirect(f'{reverse("tilmeldingslister")}?selected_list_id={list_id}')
 
     if selected_list_id:

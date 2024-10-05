@@ -83,11 +83,34 @@
             </tbody>
           </table>
 
-          <!-- Conditional Button -->
+          <!-- Spillere uden makker table -->
+          <h3 class="text-lg font-bold mt-6">Spillere uden makker</h3>
+          <table class="min-w-full divide-y divide-gray-200 mt-2">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefonnummer</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for player in liste.single_players %}
+                <tr>
+                  <td class="px-6 py-4 whitespace-nowrap">{{ player.navn }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">{{ player.telefonnummer }}</td>
+                  <td class="px-6 py-4 whitespace-nowrap">{{ player.email }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- Conditional Buttons -->
           {% now "Y-m-d H:i:s" as current_datetime %}
           {% if liste.deadline|date:"Y-m-d H:i:s" > current_datetime %}
             <!-- Add pair button -->
-            <button @click="formModalOpen = true" class="mt-6 bg-blue-500 text-white px-4 py-2 rounded">Tilføj Par</button>
+            <button @click="openModal('pair')" class="mt-6 bg-blue-500 text-white px-4 py-2 rounded mr-2">Tilføj Par</button>
+            <!-- Add single player button -->
+            <button @click="openModal('single')" class="mt-6 bg-green-500 text-white px-4 py-2 rounded">Tilføj enkelt spiller</button>
           {% else %}
             <!-- Deadline exceeded button -->
             <button class="mt-6 bg-red-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>Frist overskredet</button>
@@ -95,38 +118,39 @@
         </div>
       {% endfor %}
 
-      <!-- Add pair form modal -->
-      <div x-show="formModalOpen" @click.away="formModalOpen = false" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" x-cloak>
+      <!-- Add pair/single player form modal -->
+      <div x-show="formModalOpen" @click.away="closeModal()" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" x-cloak>
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
           <div class="absolute top-0 right-0 mt-4 mr-4">
-            <button @click="formModalOpen = false" class="text-gray-400 hover:text-gray-600">
+            <button @click="closeModal()" class="text-gray-400 hover:text-gray-600">
               <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
-          <h3 class="text-lg font-bold mb-4">Tilføj Par</h3>
-          <form method="post" class="space-y-4" onsubmit="return validateForm()">
+          <h3 class="text-lg font-bold mb-4" x-text="modalType === 'pair' ? 'Tilføj Par' : 'Tilføj enkelt spiller'"></h3>
+          <form method="post" class="space-y-4" @submit.prevent="submitForm">
             {% csrf_token %}
             <input type="hidden" name="list_id" :value="selectedListId">
+            <input type="hidden" name="is_single" :value="modalType === 'single'">
             <div>
               <label for="player1_name" class="block text-sm font-medium text-gray-700">Navn:</label>
-              <input type="text" name="player1_name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+              <input type="text" name="player1_name" x-model="player1Name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
             </div>
-            <div>
+            <div x-show="modalType === 'pair'">
               <label for="player2_name" class="block text-sm font-medium text-gray-700">Makker:</label>
-              <input type="text" name="player2_name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+              <input type="text" name="player2_name" x-model="player2Name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" :required="modalType === 'pair'">
             </div>
             <div>
               <label for="phone_number" class="block text-sm font-medium text-gray-700">Telefonnummer:</label>
-              <input type="tel" name="phone_number" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" pattern="\d{8}" title="Telefonnummer skal være 8 cifre langt" required>
+              <input type="tel" name="phone_number" x-model="phoneNumber" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" pattern="\d{8}" title="Telefonnummer skal være 8 cifre langt" required>
             </div>
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
-              <input type="email" name="email" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+              <input type="email" name="email" x-model="email" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
             </div>
             <div>
-              <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded">Tilmeld Par</button>
+              <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded" x-text="modalType === 'pair' ? 'Tilmeld Par' : 'Tilmeld Enkelt Spiller'"></button>
             </div>
           </form>
         </div>
@@ -139,6 +163,11 @@
       Alpine.data('tilmeldingslister', () => ({
         selectedListId: '{{ selected_list.id }}',
         formModalOpen: false,
+        modalType: 'pair',
+        player1Name: '',
+        player2Name: '',
+        phoneNumber: '',
+        email: '',
         init() {
           this.showSelectedList();
         },
@@ -153,18 +182,40 @@
           const url = new URL(window.location);
           url.searchParams.set('selected_list_id', this.selectedListId);
           window.history.pushState({}, '', url);
+        },
+        openModal(type) {
+          this.modalType = type;
+          this.formModalOpen = true;
+          this.resetForm();
+        },
+        closeModal() {
+          this.formModalOpen = false;
+          this.resetForm();
+        },
+        resetForm() {
+          this.player1Name = '';
+          this.player2Name = '';
+          this.phoneNumber = '';
+          this.email = '';
+        },
+        submitForm() {
+          if (this.validateForm()) {
+            document.querySelector('form').submit();
+          }
+        },
+        validateForm() {
+          if (this.phoneNumber.length !== 8) {
+            alert('Telefonnummer skal være 8 cifre langt');
+            return false;
+          }
+          if (this.modalType === 'pair' && !this.player2Name.trim()) {
+            alert('Makker navn er påkrævet for par tilmelding');
+            return false;
+          }
+          return true;
         }
       }));
     });
-
-    function validateForm() {
-      const phoneInput = document.querySelector('input[name="phone_number"]');
-      if (!phoneInput.checkValidity()) {
-        alert('Telefonnummer skal være 8 cifre langt');
-        return false;
-      }
-      return true;
-    }
   </script>
 </body>
 </html>
