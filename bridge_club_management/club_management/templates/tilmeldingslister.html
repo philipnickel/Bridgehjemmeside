@@ -173,6 +173,57 @@
           </form>
         </div>
       </div>
+
+      <!-- Confirmation Modal -->
+      <div id="confirmation-modal" 
+           x-show="confirmationModalOpen" 
+           class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
+           x-cloak>
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræftelse</h3>
+            <div class="mt-2 px-7 py-3">
+              <p class="text-sm text-gray-500">
+                Du har nu tilmeldt dig. Der er sendt en mail til den ansvarlige.
+              </p>
+            </div>
+            <div class="items-center px-4 py-3">
+              <button
+                id="close-btn"
+                @click="closeConfirmationModal()"
+                class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                Luk
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error Modal -->
+      <div id="error-modal" 
+           x-show="errorModalOpen" 
+           class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full" 
+           x-cloak>
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div class="mt-3 text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">Fejl</h3>
+            <div class="mt-2 px-7 py-3">
+              <p class="text-sm text-gray-500" x-text="errorMessage">
+              </p>
+            </div>
+            <div class="items-center px-4 py-3">
+              <button
+                id="error-close-btn"
+                @click="closeErrorModal()"
+                class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+              >
+                Luk
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -181,12 +232,23 @@
       Alpine.data('tilmeldingslister', () => ({
         selectedListId: '{{ selected_list.id }}',
         formModalOpen: false,
+        confirmationModalOpen: false,
         modalType: 'pair',
         player1Name: '',
         player2Name: '',
         phoneNumber: '',
         email: '',
+        formError: '',
+        formSuccess: '',
+        errorModalOpen: false,
+        errorMessage: '',
         init() {
+          // Get the selected_list_id from the URL if it exists
+          const urlParams = new URLSearchParams(window.location.search);
+          const selectedListIdFromUrl = urlParams.get('selected_list_id');
+          if (selectedListIdFromUrl) {
+            this.selectedListId = selectedListIdFromUrl;
+          }
           this.showSelectedList();
         },
         showSelectedList() {
@@ -205,6 +267,17 @@
           this.modalType = type;
           this.formModalOpen = true;
           this.resetForm();
+          
+          // Ensure the correct fields are shown/hidden based on the modal type
+          if (type === 'pair') {
+            this.$nextTick(() => {
+              document.querySelector('[x-show="modalType === \'pair\'"]').style.display = 'block';
+            });
+          } else {
+            this.$nextTick(() => {
+              document.querySelector('[x-show="modalType === \'pair\'"]').style.display = 'none';
+            });
+          }
         },
         closeModal() {
           this.formModalOpen = false;
@@ -215,22 +288,83 @@
           this.player2Name = '';
           this.phoneNumber = '';
           this.email = '';
+          this.formError = '';
+          this.formSuccess = '';
         },
         submitForm() {
           if (this.validateForm()) {
-            document.querySelector('form').submit();
+            // Disable the submit button immediately
+            const submitButton = event.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Sender...';
+
+            const formData = new FormData();
+            formData.append('list_id', this.selectedListId);
+            formData.append('player1_name', this.player1Name);
+            formData.append('player2_name', this.player2Name);
+            formData.append('phone_number', this.phoneNumber);
+            formData.append('email', this.email);
+            formData.append('is_single', this.modalType === 'single');
+
+            // Close the form modal immediately
+            this.closeModal();
+
+            fetch('{% url "tilmeldingslister" %}', {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+              }
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.success) {
+                this.openConfirmationModal();
+              } else {
+                this.openErrorModal(data.error || 'Der opstod en fejl. Prøv venligst igen.');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              this.openErrorModal('Der opstod en uventet fejl. Prøv venligst igen.');
+            })
+            .finally(() => {
+              // Re-enable the submit button
+              submitButton.disabled = false;
+              submitButton.textContent = this.modalType === 'pair' ? 'Tilmeld Par' : 'Tilmeld Enkelt Spiller';
+            });
           }
         },
         validateForm() {
-          if (this.phoneNumber.length !== 8) {
-            alert('Telefonnummer skal være 8 cifre langt');
-            return false;
-          }
-          if (this.modalType === 'pair' && !this.player2Name.trim()) {
-            alert('Makker navn er påkrævet for par tilmelding');
-            return false;
-          }
+          // Add your form validation logic here
           return true;
+        },
+        openConfirmationModal() {
+          this.confirmationModalOpen = true;
+        },
+        closeConfirmationModal() {
+          this.confirmationModalOpen = false;
+          // Construct the URL with the current selected_list_id
+          const url = new URL(window.location);
+          url.searchParams.set('selected_list_id', this.selectedListId);
+          // Reload the page with the updated URL
+          window.location.href = url.toString();
+        },
+        openErrorModal(message) {
+          this.errorMessage = message;
+          this.errorModalOpen = true;
+        },
+        closeErrorModal() {
+          this.errorModalOpen = false;
+          // Reload the page with the current selected_list_id
+          const url = new URL(window.location);
+          url.searchParams.set('selected_list_id', this.selectedListId);
+          window.location.href = url.toString();
         }
       }));
     });

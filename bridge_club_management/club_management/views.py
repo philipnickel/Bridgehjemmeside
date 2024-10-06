@@ -16,6 +16,8 @@ import json
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from django.db.models import F, ExpressionWrapper, fields
+from django.db import transaction
+from django.db.models import Q
 
 logger = logging.getLogger(__name__)
 
@@ -309,103 +311,77 @@ def tilmeldingslister_view(request):
         
         tilmeldingsliste = get_object_or_404(Tilmeldingsliste, id=list_id)
 
-        other_single = None  # Initialize other_single
-        if is_single:
-            # Check if there's another single player
-            other_single = TilmeldingslistePair.objects.filter(tilmeldingsliste=tilmeldingsliste, is_single=True).first()
-            
-            if other_single:
-                # Pair up the players
-                new_pair = TilmeldingslistePair.objects.create(
-                    tilmeldingsliste=tilmeldingsliste,
-                    navn=other_single.navn,
-                    makker=player1_name,
-                    telefonnummer=other_single.telefonnummer,
-                    email=other_single.email,
-                    is_single=False
-                )
-                other_single.delete()
-            else:
-                # Add as a single player
-                new_pair = TilmeldingslistePair.objects.create(
-                    tilmeldingsliste=tilmeldingsliste,
-                    navn=player1_name,
-                    telefonnummer=phone_number,
-                    email=email,
-                    is_single=True
-                )
-        else:
-            # Add as a pair
-            new_pair = TilmeldingslistePair.objects.create(
-                tilmeldingsliste=tilmeldingsliste,
-                navn=player1_name,
-                makker=player2_name,
-                telefonnummer=phone_number,
-                email=email,
-                is_single=False
-            )
+        # Check if players are already registered
+        existing_players = TilmeldingslistePair.objects.filter(
+            tilmeldingsliste=tilmeldingsliste
+        ).filter(
+            Q(navn__in=[player1_name, player2_name]) | Q(makker__in=[player1_name, player2_name])
+        )
 
-        # The signal handler will determine if the pair should be on the waiting list
-        på_venteliste = new_pair.på_venteliste
+        if existing_players.exists():
+            return JsonResponse({'success': False, 'error': 'En eller flere spillere er allerede tilmeldt.'})
 
-        subject = f"Tilmelding til {tilmeldingsliste.name}"
-        if is_single and not other_single:
-            message = f"""
-            Hej {player1_name},
+        try:
+            with transaction.atomic():
+                if is_single:
+                    other_single = TilmeldingslistePair.objects.filter(tilmeldingsliste=tilmeldingsliste, is_single=True).first()
+                    
+                    if other_single:
+                        new_pair = TilmeldingslistePair.objects.create(
+                            tilmeldingsliste=tilmeldingsliste,
+                            navn=other_single.navn,
+                            makker=player1_name,
+                            telefonnummer=other_single.telefonnummer,
+                            email=other_single.email,
+                            is_single=False
+                        )
+                        other_single.delete()
+                    else:
+                        new_pair = TilmeldingslistePair.objects.create(
+                            tilmeldingsliste=tilmeldingsliste,
+                            navn=player1_name,
+                            telefonnummer=phone_number,
+                            email=email,
+                            is_single=True
+                        )
+                else:
+                    new_pair = TilmeldingslistePair.objects.create(
+                        tilmeldingsliste=tilmeldingsliste,
+                        navn=player1_name,
+                        makker=player2_name,
+                        telefonnummer=phone_number,
+                        email=email,
+                        is_single=False
+                    )
 
-            Du er blevet tilmeldt til {tilmeldingsliste.name} den {tilmeldingsliste.day}.
-            Du er blevet tilføjet som single spiller.
-            {"Du er på ventelisten." if på_venteliste else ""}
+                på_venteliste = new_pair.på_venteliste
 
-            Telefon: {phone_number}
-            Email: {email}
-            På venteliste: {'Ja' if på_venteliste else 'Nej'}
-            """
-        else:
-            message = f"""
-            Hej {player1_name}{f" og {player2_name}" if not is_single else ""},
+                subject = f"Tilmelding til {tilmeldingsliste.name}"
+                message = f"""
+                Hej {player1_name}{f" og {player2_name}" if not is_single else ""},
 
-            {"I" if not is_single else "Du"} er blevet tilmeldt til {tilmeldingsliste.name} den {tilmeldingsliste.day}.
-            {"Du er blevet parret op med en anden spiller." if is_single and other_single else ""}
-            {"I er på ventelisten." if på_venteliste else ""}
+                {"I" if not is_single else "Du"} er blevet tilmeldt til {tilmeldingsliste.name} den {tilmeldingsliste.day}.
+                {"Du er blevet parret op med en anden spiller." if is_single and other_single else ""}
+                {"I er på ventelisten." if på_venteliste else ""}
 
-            Telefon: {phone_number}
-            Email: {email}
-            På venteliste: {'Ja' if på_venteliste else 'Nej'}
-            """
+                Telefon: {phone_number}
+                Email: {email}
+                På venteliste: {'Ja' if på_venteliste else 'Nej'}
+                """
 
-        send_mail(subject, message, 'from@example.com', [email])
+                send_mail(subject, message, 'from@example.com', [email])
 
-        messages.success(request, 'Du er blevet tilmeldt. Check din email for detaljer.')
+                return JsonResponse({
+                    'success': True, 
+                    'message': f"{'Par' if not is_single else 'Spiller'} er blevet tilmeldt{'og sat på venteliste' if på_venteliste else ''}."
+                })
 
-        # Send email to the responsible person
-        subject = f'Ny tilmelding til {tilmeldingsliste.name}'
-        message = f"""
-        En ny tilmelding er blevet registreret til {tilmeldingsliste.name} ({tilmeldingsliste.day}).
-        
-        Detaljer:
-        Navn: {player1_name}
-        {'Makker: ' + player2_name if not is_single else 'Single spiller'}
-        Telefon: {phone_number}
-        Email: {email}
-        På venteliste: {'Ja' if på_venteliste else 'Nej'} {'(kun relevant for par)' if is_single else ''}
-        """
-        responsible_email = tilmeldingsliste.responsible_person.email
-        send_mail(subject, message, 'from@example.com', [responsible_email])
-
-        return redirect(f'{reverse("tilmeldingslister")}?selected_list_id={list_id}')
-
-    if selected_list_id:
-        selected_list = get_object_or_404(Tilmeldingsliste, id=selected_list_id)
-    else:
-        # Select the first upcoming list (or the last past list if all are in the past)
-        today = timezone.now().date()
-        selected_list = tilmeldingslister.filter(day__gte=today).first() or tilmeldingslister.last()
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
 
     context = {
         'tilmeldingslister': tilmeldingslister,
-        'selected_list': selected_list,
         'tilmeldingslister_text': tilmeldingslister_text,
-        'now': timezone.now(),
+        'selected_list': selected_list
     }
     return render(request, 'tilmeldingslister.html', context)
