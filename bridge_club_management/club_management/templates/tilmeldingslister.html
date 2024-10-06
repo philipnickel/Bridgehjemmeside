@@ -274,6 +274,7 @@
           // Use nextTick to ensure this runs after Alpine has initialized all bindings
           this.$nextTick(() => {
             this.showSelectedList();
+            this.restoreScrollPosition();
           });
         },
         showSelectedList() {
@@ -372,6 +373,8 @@
         },
         closeConfirmationModal() {
           this.confirmationModalOpen = false;
+          // Save the current scroll position
+          sessionStorage.setItem('scrollPosition', window.pageYOffset);
           // Construct the URL with the current selected_list_id
           const url = new URL(window.location);
           url.searchParams.set('selected_list_id', this.selectedListId);
@@ -384,11 +387,20 @@
         },
         closeErrorModal() {
           this.errorModalOpen = false;
+          // Save the current scroll position
+          sessionStorage.setItem('scrollPosition', window.pageYOffset);
           // Reload the page with the current selected_list_id
           const url = new URL(window.location);
           url.searchParams.set('selected_list_id', this.selectedListId);
           window.location.href = url.toString();
-        }
+        },
+        restoreScrollPosition() {
+          const scrollPosition = sessionStorage.getItem('scrollPosition');
+          if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            sessionStorage.removeItem('scrollPosition');
+          }
+        },
       }));
     });
   </script>
