@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.db.models import F, ExpressionWrapper, fields
 from django.db import transaction
 from django.db.models import Q
+from django.db.models import Min
 
 logger = logging.getLogger(__name__)
 
@@ -298,8 +299,13 @@ def tilmeldingslister_view(request):
         liste.single_players = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, is_single=True).order_by('id')
         liste.all_pairs = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, is_single=False).order_by('parnummer')
 
-    selected_list_id = request.GET.get('selected_list_id') or request.POST.get('list_id')
-    selected_list = None
+    selected_list_id = request.GET.get('selected_list_id')
+    if selected_list_id:
+        selected_list = Tilmeldingsliste.objects.get(id=selected_list_id)
+    else:
+        # Select the oldest list based on the 'day' field
+        oldest_date = Tilmeldingsliste.objects.aggregate(Min('day'))['day__min']
+        selected_list = Tilmeldingsliste.objects.filter(day=oldest_date).first()
 
     if request.method == 'POST':
         list_id = request.POST.get('list_id')

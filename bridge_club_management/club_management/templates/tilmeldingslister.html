@@ -249,14 +249,22 @@
           if (selectedListIdFromUrl) {
             this.selectedListId = selectedListIdFromUrl;
           }
-          this.showSelectedList();
+          
+          // Use nextTick to ensure this runs after Alpine has initialized all bindings
+          this.$nextTick(() => {
+            this.showSelectedList();
+          });
         },
         showSelectedList() {
-          document.querySelectorAll('[x-show]').forEach(el => el.style.display = 'none');
-          const selectedList = document.querySelector(`[x-show="selectedListId == '${this.selectedListId}'"]`);
-          if (selectedList) {
-            selectedList.style.display = 'block';
-          }
+          const lists = document.querySelectorAll('[x-show^="selectedListId =="]');
+          lists.forEach(list => {
+            const listId = list.getAttribute('x-show').match(/'(\d+)'/)[1];
+            if (listId === this.selectedListId) {
+              list.style.removeProperty('display');
+            } else {
+              list.style.display = 'none';
+            }
+          });
         },
         updateUrl() {
           const url = new URL(window.location);
