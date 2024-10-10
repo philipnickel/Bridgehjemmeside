@@ -11,8 +11,8 @@ def backup_database():
         os.makedirs(backup_dir)
 
     # Generate a timestamp for the backup file
-    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    backup_file = os.path.join(backup_dir, f'db_backup_{timestamp}.json')
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H_backup')
+    backup_file = os.path.join(backup_dir, f'{timestamp}.json')
 
     # Use Django's dumpdata command to create a JSON backup
     with open(backup_file, 'w') as f:
