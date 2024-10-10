@@ -17,9 +17,17 @@
 </head>
 <body class="bg-gray-100">
   {% include 'navbar.html' %}
+  
+  <!-- Quick Navigation Button -->
+  <div class="container mx-auto my-4">
+    <button onclick="scrollPastJumbotron()" class="bg-blue-500 text-white px-4 py-2 rounded">
+      Tryk her for at gå direkte til substitutlisterne
+    </button>
+  </div>
+
   <div class="container mx-auto my-8">
     <!-- Jumbotron with Substitutlister Text -->
-    <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8" id="jumbotron">
       <div class="text-lg ck-content">{{ substitutlister_text|safe }}</div>
     </div>
   </div>
@@ -227,6 +235,17 @@
     </div>
   </div>
   <script>
+    function scrollPastJumbotron() {
+      const jumbotron = document.getElementById('jumbotron');
+      const jumbotronHeight = jumbotron.offsetHeight;
+      const additionalOffset = window.innerHeight * 0.2; // 10% of the viewport height
+      
+      window.scrollBy({
+        top: jumbotronHeight + additionalOffset,
+        behavior: 'smooth'
+      });
+    }
+
     document.addEventListener('alpine:init', () => {
       Alpine.data('substitutlister', () => ({
         modalOpen: false,
