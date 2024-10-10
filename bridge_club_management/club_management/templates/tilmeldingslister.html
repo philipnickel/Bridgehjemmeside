@@ -12,8 +12,17 @@
 </head>
 <body class="bg-gray-100">
   {% include 'navbar.html' %}
-  <div class="container mx-auto my-8" x-data="tilmeldingslister">
-    <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
+  
+  <!-- Quick Navigation Button -->
+  <div class="container mx-auto my-4">
+    <button onclick="scrollPastJumbotron()" class="bg-blue-500 text-white px-4 py-2 rounded">
+      Tryk her for at gå direkte til tilmeldingslisterne
+    </button>
+  </div>
+
+  <div class="container mx-auto my-8" id="tilmeldingslister-section" x-data="tilmeldingslister">
+    <!-- Jumbotron and other content -->
+    <div class="bg-white shadow-lg rounded-lg p-8 mb-8" id="jumbotron">
       <div class="text-lg ck-content">{{ tilmeldingslister_text|safe }}</div>
     </div>
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
@@ -21,7 +30,7 @@
 
       <!-- Dropdown to select lists -->
       <div class="mb-4">
-        <label for="list_id" class="block text-lg font-medium text-gray-700">Vælg liste:</label>
+        <label for="list_id" class="block text-lg font-medium text-gray-700">Vælg liste fra dropdown:</label>
         <select name="list_id" id="list_id" x-model="selectedListId" @change="showSelectedList(); updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           {% for liste in tilmeldingslister %}
@@ -248,6 +257,17 @@
   </div>
 
   <script>
+    function scrollPastJumbotron() {
+      const jumbotron = document.getElementById('jumbotron');
+      const jumbotronHeight = jumbotron.offsetHeight;
+      const additionalOffset = window.innerHeight * 0.2; // 10% of the viewport height
+      
+      window.scrollBy({
+        top: jumbotronHeight + additionalOffset,
+        behavior: 'smooth'
+      });
+    }
+
     document.addEventListener('alpine:init', () => {
       Alpine.data('tilmeldingslister', () => ({
         selectedListId: '{{ selected_list.id }}',
