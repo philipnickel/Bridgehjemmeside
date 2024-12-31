@@ -6,36 +6,30 @@ class Command(BaseCommand):
     help = 'Ensure there are substitutlister for all weekdays in all weeks and delete old ones'
 
     def handle(self, *args, **kwargs):
-        today = datetime.date.today()
-        current_week_number = today.isocalendar()[1]
-        current_year = today.year
-
-        # Get all weeks
-        weeks = Week.objects.all()
-        week_numbers = weeks.values_list('name', flat=True)
-
         # Define the weekdays in Danish
         weekdays = ['mandag', 'tirsdag', 'onsdag', 'torsdag', 'fredag']
 
+        # Get all weeks
+        weeks = Week.objects.all()
+        week_names = weeks.values_list('name', flat=True)
+
         # Delete substitutlister for old weeks
-        Substitutliste.objects.exclude(week__name__in=week_numbers).delete()
+        Substitutliste.objects.exclude(week__name__in=week_names).delete()
 
         for week in weeks:
-            week_number = int(week.name)
+            # Extract the week number and year from the week's name
+            week_number, year = map(int, week.name.split('-'))
+
             for i, weekday in enumerate(weekdays):
                 # Calculate the date for the given weekday in the given week
-                week_start_date = datetime.date.fromisocalendar(current_year, week_number, 1)
+                week_start_date = datetime.date.fromisocalendar(year, week_number, 1)
                 weekday_date = week_start_date + datetime.timedelta(days=i)
-
-                # Handle year transition
-                if weekday_date.year != current_year:
-                    current_year = weekday_date.year
 
                 # Calculate the deadline (6 PM the day before)
                 deadline = datetime.datetime.combine(weekday_date, datetime.time(18, 0)) - datetime.timedelta(days=1)
 
                 # Create the name for the substitutliste
-                substitutliste_name = f"{weekday}_{week_number}"
+                substitutliste_name = f"{weekday}_{week_number}-{year}"
 
                 # Ensure the substitutliste exists
                 Substitutliste.objects.get_or_create(
