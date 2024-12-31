@@ -62,7 +62,7 @@ def front_page(request):
     ).all()
     afmeldingslister = Afmeldingsliste.objects.all().order_by('day')
     weeks = Week.objects.all()
-    weeks = sorted(weeks, key=lambda week: int(week.name))  # Sort weeks by numeric value of name
+    weeks = sorted(weeks, key=lambda week: int(week.name.split('-')[0]))  # Sort weeks by week number
 
     # Mapping of English day names to Danish day names
     day_name_mapping = {
@@ -216,7 +216,7 @@ def substitutlister(request):
         )
     ).all()
     weeks = Week.objects.all()
-    weeks = sorted(weeks, key=lambda week: int(week.name))  # Sort weeks by numeric value of name
+    weeks = sorted(weeks, key=lambda week: int(week.name.split('-')[0]))  # Sort weeks by week number
 
     # Mapping of English day names to Danish day names
     day_name_mapping = {
