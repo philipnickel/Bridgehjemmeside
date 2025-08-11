@@ -1,0 +1,1 @@
+# Settings package for bridge club management system 

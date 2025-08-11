@@ -1,4 +1,5 @@
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 from django.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -186,7 +187,7 @@ class Day(models.Model):
 
 class DayResponsibility(models.Model):
     day = models.ForeignKey(Day, verbose_name=_("Dag"), on_delete=models.CASCADE)
-    coordinator = models.ForeignKey(User, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
+    coordinator = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.day}: {self.coordinator}"
@@ -204,7 +205,7 @@ class Tilmeldingsliste(models.Model):
     name = models.CharField(_("Navn"), max_length=100, default="unknown")
     day = models.DateField(_("Dag"))
     deadline = models.DateTimeField(_("Deadline"))
-    responsible_person = models.ForeignKey(User, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
+    responsible_person = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_("Ansvarlig"), on_delete=models.CASCADE)
     antal_par = models.IntegerField(_("Antal Par"), default=24)
 
     class Meta:

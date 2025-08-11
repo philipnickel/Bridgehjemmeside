@@ -1,0 +1,20 @@
+# Production requirements
+# These are optimized for production deployment
+
+-r base.txt
+
+# Production web server
+gunicorn>=20.1.0
+
+# Security and performance
+django[argon2]>=4.1  # Better password hashing
+whitenoise>=6.3.0    # Static file serving
+
+# Monitoring and logging
+sentry-sdk>=1.14.0   # Error tracking (optional)
+
+# Environment management
+python-dotenv>=1.0.0
+
+# Memory optimization
+psutil>=5.9.4        # Process monitoring 
