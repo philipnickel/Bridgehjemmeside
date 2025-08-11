@@ -14,13 +14,18 @@
         }
     ],
     "settings": {
-        "python.defaultInterpreterPath": "~/miniconda3/envs/bridge/bin/python",
+        "python.defaultInterpreterPath": "/opt/homebrew/Caskroom/miniconda/base/envs/bridge/bin/python",
         "python.terminal.activateEnvironment": true,
+        "python.condaPath": "/opt/homebrew/Caskroom/miniconda/base/bin/conda",
         "terminal.integrated.env.osx": {
-            "DJANGO_SETTINGS_MODULE": "bridge_club_management.settings.local"
+            "DJANGO_SETTINGS_MODULE": "bridge_club_management.settings.local",
+            "CONDA_DEFAULT_ENV": "bridge",
+            "PATH": "/opt/homebrew/Caskroom/miniconda/base/envs/bridge/bin:${env:PATH}"
         },
         "terminal.integrated.env.linux": {
-            "DJANGO_SETTINGS_MODULE": "bridge_club_management.settings.local"
+            "DJANGO_SETTINGS_MODULE": "bridge_club_management.settings.local",
+            "CONDA_DEFAULT_ENV": "bridge",
+            "PATH": "/opt/homebrew/Caskroom/miniconda/base/envs/bridge/bin:${env:PATH}"
         },
         "terminal.integrated.env.windows": {
             "DJANGO_SETTINGS_MODULE": "bridge_club_management.settings.local"
@@ -61,8 +66,8 @@
             {
                 "label": "Quick Start: Run Server",
                 "type": "shell",
-                "command": "python",
-                "args": ["manage.py", "runserver"],
+                "command": "bash",
+                "args": ["-c", "source /opt/homebrew/Caskroom/miniconda/base/etc/profile.d/conda.sh && conda activate bridge && python manage.py runserver"],
                 "options": {
                     "cwd": "${workspaceFolder}/bridge_club_management",
                     "env": {
