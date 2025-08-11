@@ -1,87 +1,129 @@
-# Brugervejledning
-## Nye Substitutliste-ledere
-Skal oprettes i admin-delen af hjemmesiden under 'Godkendelse og Autorisation'. 
-(husk at tildele dem rettigheder)
+# Bridge Club Management System 🃏
 
-## Oprettelse af Substitutter
-Sker i admin-delen af hjemmesiden under 'Substitutter' -> 'Tilføj Substitutter'.
-Obs: De bliver ikke automatisk sat på allerede eksisterende substitutlister. (Hvis dette ønskes, skal substitutlisterne opdateres) - Kan gøre hurtigt fra 'Substitutlister'->Markér alle -> Handling -> opdatér valgte -> Udfør 
+A professional Django-based management system for bridge clubs, featuring substitute lists, registration management, and automated workflows.
 
-## Angiv ferie/fravær for substitutter
-Gøres ved at gå ind på pågældende substitut i admin-delen og ændre status på hver enkelt substitutliste-tildeling, der vises. 
+## 🚀 Quick Start
 
-## Oprettelse af Substitutlister og uger
-Der bliver lavet et automatisk 'tjek' hver aften, hvor det sikres, at kun den aktuelle uge vises og alle uger har tilhørende substitutlister.
+### Local Development
+```bash
+# Clone and setup
+git clone <repository-url>
+cd Bridgehjemmeside
+conda activate bridge
 
-## Ansvarlig for substitutliste
-Vælges i admin-delen af hjemmesiden under 'Ansvarlig for dag' 
+# Install dependencies and setup
+cd bridge_club_management
+pip install -r requirements/local.txt
+cp env.template .env
 
-## Forsidetekst
-Ændres i admin-delen af hjemmesiden under 'Forsidetekst'. 
+# Run with local settings
+export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
 
-## Automatiske Emails
-Der sendes automatisk en email til den ansvarlige, når en substitut vælges. 
+### Access Points
+- **Local**: http://localhost:8000
+- **Staging**: https://bridgeclub-dev.pythonanywhere.com (dev branch)
+- **Production**: https://bridgeclub.pythonanywhere.com (main branch)
 
-## Afmeldingslister 
-Skal oprettes manuelt i admin-delen af hjemmesiden under 'Afmeldingslister'. 
+## 🏗️ Architecture
 
+### Environment Strategy
+- **main** → Production (MySQL on PythonAnywhere)
+- **dev** → Staging (MySQL on PythonAnywhere) 
+- **feature/*** → Local Development (SQLite)
 
+### Development Workflow
+```
+feature/your-feature ← Local development with SQLite
+↓ (PR review & tests pass)
+dev ← Staging with MySQL on PythonAnywhere
+↓ (Tested on staging)
+main ← Production with MySQL on PythonAnywhere
+```
 
+## 🧪 Testing
 
+We maintain comprehensive test coverage:
+- **35 tests** covering models, forms, and core functionality
+- **GitHub Actions** for automated CI/CD
+- **Multiple environments** tested
 
-# Documentation 
+```bash
+# Run tests locally
+export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
+python manage.py test
 
-This repository contains the source code for managing a bridge club, including various Django models, forms, views, and templates.
+# Run specific test suites
+python manage.py test club_management.tests.test_models
+python manage.py test club_management.tests.test_forms
+```
 
-## Table of Contents
+## 📚 Documentation
 
-1. [Models](#models)
-2. [Forms](#forms)
-3. [Admin](#admin)
-4. [URLs](#urls)
-5. [Views](#views)
-6. [Commands](#commands)
-7. [Templates](#templates)
-8. [Tech Stack](#tech-stack)
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Complete development workflow guide
+- **[docs/](docs/)** - Technical documentation
+- **[bridge_club_management/env.template](bridge_club_management/env.template)** - Environment variables template
 
-## Models
+## 🛠️ Technology Stack
 
-The `models.py` file contains the database models for the application. These models define the structure of the database tables and the relationships between them.
+- **Backend**: Django 4.1+, Python 3.11
+- **Database**: SQLite (local), MySQL (staging/production)
+- **Frontend**: Bootstrap, Django Templates
+- **Deployment**: PythonAnywhere
+- **CI/CD**: GitHub Actions
+- **Environment**: Conda (`bridge` environment)
 
-## Forms
+## 🎯 Features
 
-The `forms.py` file contains the Django forms used in the application. These forms handle user input and validation.
+- **Substitute Management**: Automated substitute list generation
+- **Registration System**: Event registration with waiting lists
+- **User Management**: Custom user system with availability tracking
+- **Multi-environment**: Professional development workflow
+- **Automated Testing**: Comprehensive test suite
+- **Documentation**: Complete setup and API documentation
 
-## Admin
+## 🚀 Deployment
 
-The `admin.py` file is used to register the models with the Django admin site. This allows for easy management of the models through the Django admin interface.
+### Staging (dev branch)
+```bash
+./scripts/deploy.sh staging
+```
 
-## URLs
+### Production (main branch)
+```bash
+./scripts/deploy.sh production
+```
 
-The `urls.py` file contains the URL patterns for the application. These patterns map URLs to views.
+## 📝 Contributing
 
-## Views
+1. Create feature branch from `dev`
+2. Develop locally with SQLite
+3. Write tests for new features
+4. Create PR to `dev` (tests must pass)
+5. Test on staging environment
+6. Create PR from `dev` to `main` for production
 
-The `views.py` file contains the view functions or class-based views that handle the requests and return responses.
+## 🔧 Environment Configuration
 
-## Commands
+Each environment has specific settings:
 
-The `commands` directory contains custom management commands for the Django application. These commands can be run using the Django `manage.py` script.
+| Environment | Branch | Database | Settings Module | Debug |
+|-------------|--------|----------|-----------------|-------|
+| Local | feature/* | SQLite | `settings.local` | True |
+| Staging | dev | MySQL | `settings.staging` | True |
+| Production | main | MySQL | `settings.production` | False |
 
-## Templates
+## 🏆 Project Status
 
-The `templates` directory contains the HTML templates used in the application. These templates are rendered by the views and returned as HTML responses.
+- ✅ **Live Site**: Fully operational
+- ✅ **Testing**: 35 tests passing
+- ✅ **CI/CD**: GitHub Actions configured
+- ✅ **Documentation**: Complete
+- ✅ **Multi-environment**: Configured
 
-## Tech Stack
+---
 
-- **Python**: The main programming language used.
-- **Django**: The web framework used for building the application.
-- **CKEditor 4**: A web-based text editor used for rich text editing.
-- **JavaScript**: Used for client-side scripting.
-- **HTML/CSS**: Used for structuring and styling the web pages.
-- **Tailwind CSS**: A utility-first CSS framework used for styling.
-- **SQLite**: The database used. Only exists on server. 
-- **Bootstrap**: A CSS framework used for responsive design.
-
-## Questions 
-Can be directed to Philip at Philipnickel@outlook.dk 
+*Built with ❤️ for bridge clubs everywhere*
