@@ -48,4 +48,4 @@ jobs:
         env:
           DJANGO_SETTINGS_MODULE: bridge_club_management.settings.local
         run: |
-          python run_tests.py 
+          python scripts/run_tests.py 
