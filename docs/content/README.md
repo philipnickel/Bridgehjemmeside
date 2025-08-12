@@ -63,7 +63,7 @@ python manage.py test club_management.tests.test_forms
 
 ## 📚 Documentation
 
-- **[DEVELOPMENT.md](../DEVELOPMENT.md)** - Complete development workflow guide
+- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Complete development workflow guide
 - **[docs/](docs/)** - Technical documentation
 - **[bridge_club_management/env.template](bridge_club_management/env.template)** - Environment variables template
 
