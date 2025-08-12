@@ -17,7 +17,7 @@ def run_tests(test_module=None, verbosity=0):
 
     # Build test labels from the tests package
     labels = []
-    project_root = Path(__file__).resolve().parent
+    project_root = Path(__file__).resolve().parent.parent
     tests_pkg = project_root / 'club_management' / 'tests'
     pkg_tests = sorted(glob.glob(str(tests_pkg / 'test_*.py')))
     if not test_module and pkg_tests:
@@ -44,7 +44,7 @@ def run_tests(test_module=None, verbosity=0):
 
     # Run tests and capture output
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(__file__))
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(__file__)))
 
         # Parse output for clean display
         output_lines = result.stdout.split('\n')
@@ -85,7 +85,7 @@ def run_tests(test_module=None, verbosity=0):
             print('\n'.join(relevant_lines[-5:]))
 
         # Show stderr only if there are actual errors (not just test output)
-        if result.stderr and result.stderr.strip() and "ERROR" in result.stderr.upper():
+        if result.stderr and result.stderr.strip():
             print(f"\n🚨 Errors:")
             print(result.stderr)
 
