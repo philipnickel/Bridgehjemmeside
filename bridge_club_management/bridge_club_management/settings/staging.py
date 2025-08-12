@@ -1,5 +1,5 @@
 """
-Staging settings for the dev branch test site on PythonAnywhere
+Staging settings for the dev/test-site branch on PythonAnywhere
 """
 from .base import *
 import os
@@ -21,7 +21,7 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'bridgeclub$bridge_dev'),
+        'NAME': os.environ.get('DB_NAME', 'bridgeclub$bridge_staging'),
         'USER': os.environ.get('DB_USER', 'bridgeclub'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
         'HOST': os.environ.get('DB_HOST', 'bridgeclub.mysql.pythonanywhere-services.com'),
@@ -34,11 +34,11 @@ DATABASES = {
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/bridgeclub/bridgehjemmeside-dev/bridge_club_management/static'
+STATIC_ROOT = '/home/bridgeclub/bridgehjemmeside-staging/bridge_club_management/static'
 
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/bridgeclub/bridgehjemmeside-dev/bridge_club_management/media'
+MEDIA_ROOT = '/home/bridgeclub/bridgehjemmeside-staging/bridge_club_management/media'
 
 # Less strict security for staging
 SECURE_SSL_REDIRECT = False
@@ -57,7 +57,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': '/home/bridgeclub/logs/django-dev.log',
+            'filename': '/home/bridgeclub/logs/django-staging.log',
         },
     },
     'loggers': {

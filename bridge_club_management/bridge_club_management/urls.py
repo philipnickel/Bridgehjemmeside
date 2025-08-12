@@ -30,3 +30,13 @@ urlpatterns = [
     path('meld_afbud/', views.meld_afbud, name='meld_afbud'),
     path('Tilmeldingsliste/', views.Tilmeldingsliste, name='Tilmeldingslister'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# Add debug toolbar URLs for local development
+if settings.DEBUG:
+    try:
+        import debug_toolbar
+        urlpatterns = [
+            path('__debug__/', include(debug_toolbar.urls)),
+        ] + urlpatterns
+    except ImportError:
+        pass

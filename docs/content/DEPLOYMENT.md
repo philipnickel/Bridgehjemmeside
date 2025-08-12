@@ -4,25 +4,32 @@ Complete guide for deploying the Bridge Club Management System to PythonAnywhere
 
 ## 🎯 Deployment Overview
 
-We use a **two-server deployment strategy**:
-- **Development Server**: `Ruder10.pythonanywhere.com` (testing)
-- **Production Server**: `www.substitutliste.dk` (live site)
+We use a **three-tier deployment strategy**:
+- **Local Development**: SQLite database for feature development
+- **Staging Server**: `bridgeclub-staging.pythonanywhere.com` (dev/test-site branch)
+- **Production Server**: `www.substitutliste.dk` (main branch - live site)
+
+## 🌊 Branch Workflow
+
+- **feature/*** → **develop** → **dev/test-site** → **main**
+- Each merge triggers appropriate CI/CD pipeline
+- Production deployments require approval and staging validation
 
 ## 🚀 Initial Server Setup
 
-### 1. Create Development Server
+### 1. Create Staging Server
 
 1. **Log into PythonAnywhere**
 2. **Create New Web App**: 
    - Click "Add a new web app"
-   - Choose subdomain: `ruder10-dev.pythonanywhere.com`
+   - Choose subdomain: `bridgeclub-staging.pythonanywhere.com`
    - Select Python version: 3.10
    - Choose "Manual configuration"
 
 3. **Configure Web App**:
-   - Source code: `/home/Ruder10/Bridgehjemmeside-dev/`
-   - Working directory: `/home/Ruder10/Bridgehjemmeside-dev/bridge_club_management/`
-   - WSGI file: Edit to point to your Django app
+   - Source code: `/home/bridgeclub/bridgehjemmeside-staging/`
+   - Working directory: `/home/bridgeclub/bridgehjemmeside-staging/bridge_club_management/`
+   - WSGI file: Edit to point to staging Django app
 
 ### 2. Setup SSH Access
 
@@ -40,33 +47,33 @@ cat ~/.ssh/id_ed25519.pub
 
 ```bash
 # SSH to server
-ssh Ruder10@ssh.pythonanywhere.com
+ssh bridgeclub@ssh.pythonanywhere.com
 
-# Clone repository
-cd /home/Ruder10/
-git clone <your-repo-url> Bridgehjemmeside-dev
+# Clone repository for staging
+cd /home/bridgeclub/
+git clone <your-repo-url> bridgehjemmeside-staging
 
-# Set up for develop branch
-cd Bridgehjemmeside-dev
-git checkout develop
+# Set up for dev/test-site branch
+cd bridgehjemmeside-staging
+git checkout dev/test-site
 ```
 
-## 🛠️ Development Server Deployment
+## 🛠️ Staging Server Deployment
 
 ### First-Time Setup
 
 ```bash
-# SSH to development server
-ssh Ruder10@ssh.pythonanywhere.com
+# SSH to staging server
+ssh bridgeclub@ssh.pythonanywhere.com
 
 # Navigate to project
-cd /home/Ruder10/Bridgehjemmeside-dev/bridge_club_management
+cd /home/bridgeclub/bridgehjemmeside-staging/bridge_club_management
 
 # Set Django settings
-export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.develop
+export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.staging
 
 # Install dependencies
-pip3.10 install --user -r requirements/production.txt
+pip3.10 install --user -r requirements/staging.txt
 
 # Setup database
 python3.10 manage.py migrate

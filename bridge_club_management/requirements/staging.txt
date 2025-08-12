@@ -1,0 +1,14 @@
+# Staging requirements
+# These are for the staging/test environment
+
+-r base.txt
+
+# Debug tools for staging (helpful for testing)
+django-debug-toolbar>=3.2.4
+django-extensions>=3.2.1
+
+# Environment management
+python-dotenv>=1.0.0
+
+# Testing tools (for staging verification)
+coverage>=7.1.0
