@@ -68,9 +68,13 @@ LOGGING = {
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Development toolbar and other dev tools
-INSTALLED_APPS += [
-    'django_extensions',  # Provides shell_plus and other useful commands
-]
+try:
+    import django_extensions  # noqa: F401
+    INSTALLED_APPS += [
+        'django_extensions',  # Provides shell_plus and other useful commands
+    ]
+except ImportError:
+    pass
 
 # Try to add debug toolbar if available
 try:
