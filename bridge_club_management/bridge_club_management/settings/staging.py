@@ -21,10 +21,10 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'bridgeclub$bridge_staging'),
-        'USER': os.environ.get('DB_USER', 'bridgeclub'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST', 'bridgeclub.mysql.pythonanywhere-services.com'),
+        'HOST': os.environ.get('DB_HOST'),
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',
@@ -34,18 +34,18 @@ DATABASES = {
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/bridgeclub/bridgehjemmeside-staging/bridge_club_management/static'
+STATIC_ROOT = os.environ.get('STATIC_ROOT', '/home/Ruder10/DevSite/Bridgehjemmeside/bridge_club_management/static')
 
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/bridgeclub/bridgehjemmeside-staging/bridge_club_management/media'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/home/Ruder10/DevSite/Bridgehjemmeside/bridge_club_management/media')
 
 # Less strict security for staging
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = False
 
-# Logging for staging
+# Logging for staging (simplified - console only)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -54,20 +54,15 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
         },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': '/home/bridgeclub/logs/django-staging.log',
-        },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'club_management': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
         },
