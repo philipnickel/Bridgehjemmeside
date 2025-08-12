@@ -15,15 +15,15 @@ def run_tests(test_module=None, verbosity=0):
     # Set up environment
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bridge_club_management.settings.local')
 
-    # Build test labels to EXCLUDE legacy package tests under club_management/tests/
+    # Build test labels from the tests package
     labels = []
     project_root = Path(__file__).resolve().parent
-    top_level_tests = sorted(glob.glob(str(project_root / 'club_management' / 'test_*.py')))
-    if not test_module and top_level_tests:
-        # Convert file paths to module labels, e.g., club_management/test_views.py -> club_management.test_views
-        for test_file in top_level_tests:
+    tests_pkg = project_root / 'club_management' / 'tests'
+    pkg_tests = sorted(glob.glob(str(tests_pkg / 'test_*.py')))
+    if not test_module and pkg_tests:
+        for test_file in pkg_tests:
             module_name = Path(test_file).stem
-            labels.append(f'club_management.{module_name}')
+            labels.append(f'club_management.tests.{module_name}')
 
     # Prepare command
     if test_module:
@@ -31,10 +31,10 @@ def run_tests(test_module=None, verbosity=0):
         test_description = f"Running tests for {test_module}"
     elif labels:
         cmd = [sys.executable, 'manage.py', 'test', *labels, f'--verbosity={verbosity}', '--keepdb']
-        test_description = "Running top-level app tests (excluding legacy package)"
+        test_description = "Running tests from club_management/tests"
     else:
-        cmd = [sys.executable, 'manage.py', 'test', 'club_management', f'--verbosity={verbosity}', '--keepdb']
-        test_description = "Running all app tests"
+        cmd = [sys.executable, 'manage.py', 'test', 'club_management.tests', f'--verbosity={verbosity}', '--keepdb']
+        test_description = "Running all tests in tests package"
 
     # Print header
     print("=" * 60)
@@ -91,7 +91,7 @@ def run_tests(test_module=None, verbosity=0):
 
         # Print footer
         print("\n" + "=" * 60)
-        print(f"✅ Tests completed at: {datetime.now().strftime('%H:%M:%S')}" )
+        print(f"✅ Tests completed at: {datetime.now().strftime('%H:%M:%S')}")
         if result.returncode == 0:
             print("🎉 All tests passed!")
         else:
