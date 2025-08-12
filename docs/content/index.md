@@ -25,7 +25,7 @@ python manage.py runserver
 
     Perfect for development and maintenance tasks:
 
-    - **[Development Workflow](DEVELOPMENT.md)** - Git workflow, feature development, deployment process
+    - **[Development Workflow](../DEVELOPMENT.md)** - Git workflow, feature development, deployment process
     - **[Environment Setup](ENVIRONMENTS.md)** - Local, development, and production configuration
     - **[Commands Reference](COMMANDS.md)** - Django management commands and deployment commands
     - **[Deployment Guide](DEPLOYMENT.md)** - PythonAnywhere deployment procedures

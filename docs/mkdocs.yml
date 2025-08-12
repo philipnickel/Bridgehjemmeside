@@ -34,7 +34,7 @@ theme:
 nav:
   - Home: index.md
   - User Guide: 
-    - Development Workflow: DEVELOPMENT.md
+    - Development Workflow: ../DEVELOPMENT.md
     - Environment Setup: ENVIRONMENTS.md
     - Commands Reference: COMMANDS.md
     - Deployment Guide: DEPLOYMENT.md
