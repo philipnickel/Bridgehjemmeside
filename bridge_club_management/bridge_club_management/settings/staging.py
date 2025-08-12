@@ -21,10 +21,10 @@ ALLOWED_HOSTS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'Ruder10$dev_test_site'),
-        'USER': os.environ.get('DB_USER', 'Ruder10'),
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
         'PASSWORD': os.environ.get('DB_PASSWORD'),
-        'HOST': os.environ.get('DB_HOST', 'Ruder10.mysql.pythonanywhere-services.com'),
+        'HOST': os.environ.get('DB_HOST'),
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',
@@ -34,11 +34,11 @@ DATABASES = {
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/Ruder10/bridgehjemmeside-staging/bridge_club_management/static'
+STATIC_ROOT = os.environ.get('STATIC_ROOT', '/home/Ruder10/DevSite/Bridgehjemmeside/bridge_club_management/static')
 
 # Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/Ruder10/bridgehjemmeside-staging/bridge_club_management/media'
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT', '/home/Ruder10/DevSite/Bridgehjemmeside/bridge_club_management/media')
 
 # Less strict security for staging
 SECURE_SSL_REDIRECT = False
