@@ -19,6 +19,7 @@ from django.db.models import F, ExpressionWrapper, fields
 from django.db import transaction
 from django.db.models import Q
 from django.db.models import Min
+from .email_utils import send_tilmeldingsliste_email
 
 logger = logging.getLogger(__name__)
 
@@ -343,6 +344,22 @@ def tilmeldingslister_view(request):
                             email=other_single.email,
                             is_single=False
                         )
+                        # Notify both players that they are now paired
+                        pair_subject = f"Parret op til {tilmeldingsliste.name}"
+                        pair_message = f"""
+                        Hej {other_single.navn} og {player1_name},
+
+                        I er nu parret op til {tilmeldingsliste.name} den {tilmeldingsliste.day}.
+                        Jeres nuværende status: {'Venteliste' if new_pair.på_venteliste else 'Hovedliste'}.
+                        Parnummer: {new_pair.parnummer if new_pair.parnummer else 'Afventer'}
+                        """
+                        recipients = []
+                        if email:
+                            recipients.append(email)
+                        if other_single.email:
+                            recipients.append(other_single.email)
+                        if recipients:
+                            send_tilmeldingsliste_email(pair_subject, pair_message, list(set(recipients)))
                         other_single.delete()
                     else:
                         new_pair = TilmeldingslistePair.objects.create(
@@ -377,7 +394,7 @@ def tilmeldingslister_view(request):
                 På venteliste: {'Ja' if på_venteliste else 'Nej'}
                 """
 
-                send_mail(subject, message, 'from@example.com', [email])
+                send_tilmeldingsliste_email(subject, message, [email])
 
                 return JsonResponse({
                     'success': True, 

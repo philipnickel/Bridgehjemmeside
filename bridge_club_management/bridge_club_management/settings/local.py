@@ -66,6 +66,9 @@ LOGGING = {
 
 # Email backend for local development (console backend)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+TEST_SITE = True
+EMAIL_SUBJECT_PREFIX = '[LOCAL TEST] '
+DEFAULT_FROM_EMAIL = 'Bridge Klub Local Dev <no-reply@local.substitutliste.dk>'
 
 # Development toolbar and other dev tools
 try:
