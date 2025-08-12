@@ -1,258 +1,314 @@
-# Bridge Club Management System - Development Workflow
+# Development Guide
 
-## Overview
+Complete development workflow for the Bridge Club Management System.
 
-This project uses a structured development workflow with multiple environments:
+## 🚀 Quick Setup
 
-- **main**: Production environment on PythonAnywhere (live site)
-- **dev**: Staging environment on PythonAnywhere (test site) 
-- **feature/***: Local development branches for new features
+### Prerequisites
+- Python 3.11
+- Conda environment named `bridge`
+- Git
 
-## Environment Setup
+### Initial Setup
 
-### Local Development (Feature Branches)
-
-1. **Prerequisites:**
-   - Python 3.11
-   - Conda environment named `bridge` [[memory:5819627]]
-   - Git
-
-2. **Initial Setup:**
-   ```bash
-   # Clone the repository
-   git clone <repository-url>
-   cd Bridgehjemmeside
-   
-   # Activate conda environment
-   conda activate bridge
-   
-   # Install dependencies
-   cd bridge_club_management
-   pip install -r requirements/local.txt
-   
-   # Copy environment template
-   cp env.template .env
-   # Edit .env with your local settings
-   
-   # Run initial migrations
-   export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
-   python manage.py migrate
-   
-   # Create superuser
-   python manage.py createsuperuser
-   
-   # Load sample data (optional)
-   python manage.py loaddata <backup_file>.json
-   
-   # Run development server
-   python manage.py runserver
-   ```
-
-3. **Environment Variables (.env):**
-   ```bash
-   DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
-   DJANGO_SECRET_KEY=your-local-secret-key
-   DEBUG=True
-   ```
-
-### Staging Environment (dev branch)
-
-- **URL**: `bridgeclub-dev.pythonanywhere.com` (replace with actual)
-- **Database**: MySQL on PythonAnywhere (`bridgeclub$bridge_dev`)
-- **Settings**: `bridge_club_management.settings.staging`
-
-### Production Environment (main branch)
-
-- **URL**: `bridgeclub.pythonanywhere.com` (replace with actual)
-- **Database**: MySQL on PythonAnywhere (`bridgeclub$bridge_main`) [[memory:5835904]]
-- **Settings**: `bridge_club_management.settings.production`
-
-## Development Workflow
-
-### Feature Development
-
-1. **Create Feature Branch:**
-   ```bash
-   git checkout dev
-   git pull origin dev
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Local Development:**
-   - Use SQLite database for local testing
-   - Settings automatically configured via `local.py`
-   - Run tests: `python manage.py test`
-
-3. **Testing:**
-   ```bash
-   # Run all tests
-   python manage.py test
-   
-   # Run specific test files
-   python manage.py test club_management.tests.test_models
-   python manage.py test club_management.tests.test_forms
-   
-   # Run with coverage
-   coverage run --source='.' manage.py test
-   coverage report
-   ```
-
-### Git Workflow
-
-1. **Feature Development:**
-   ```bash
-   feature/your-feature ← Local development with SQLite
-   ↓ (PR review & tests pass)
-   dev ← Staging with MySQL on PythonAnywhere
-   ↓ (Tested on staging)
-   main ← Production with MySQL on PythonAnywhere
-   ```
-
-2. **Pull Request Process:**
-   - Create PR from `feature/your-feature` to `dev`
-   - GitHub Actions automatically run tests
-   - Code review required
-   - Merge to `dev` triggers staging deployment
-   - Test on staging environment
-   - Create PR from `dev` to `main` for production
-
-### Database Management
-
-#### Local Development
-- **Database**: SQLite (`db.sqlite3`)
-- **Migrations**: `python manage.py migrate`
-- **Reset database**: Delete `db.sqlite3` and re-run migrations
-
-#### Loading Production Data Locally
 ```bash
-# Option 1: Load from JSON backup
-python manage.py loaddata live_data_backup.json
+# Clone repository
+git clone https://github.com/philipnickel/Bridgehjemmeside.git
+cd Bridgehjemmeside
 
-# Option 2: Import from MySQL dump
-# (You'll need to convert MySQL dump to Django fixtures)
+# Activate conda environment  
+conda activate bridge
+
+# Navigate to Django project
+cd bridge_club_management
+
+# Install dependencies
+pip install -r requirements/local.txt
+
+# Setup environment file
+cp env.template .env
+
+# Initialize database
+python manage.py migrate
+
+# Create admin user
+python manage.py createsuperuser
+
+# Run development server
+python manage.py runserver
 ```
 
-#### Creating Backups
-```bash
-# Create JSON backup
-python manage.py dumpdata > backup_$(date +%Y%m%d).json
+**Local site**: http://localhost:8000
 
-# Exclude certain tables if needed
-python manage.py dumpdata --exclude=contenttypes --exclude=auth.permission > backup.json
-```
+## 🔧 Common Development Commands
 
-## GitHub Actions CI/CD
+### Django Commands
 
-### Automated Testing
-- Triggers on pushes to `main`, `dev`, `develop`
-- Runs on Python 3.11
-- Tests with SQLite (local settings)
-- Runs full test suite
-- Checks for missing migrations
-- Validates static file collection
-
-### Test Requirements
-- All tests must pass before merge
-- No missing migrations
-- Static files must collect successfully
-- Django system checks must pass
-
-## Development Commands
-
-### Django Management Commands
 ```bash
 # Run development server
 python manage.py runserver
 
-# Create and apply migrations
+# Database operations
 python manage.py makemigrations
 python manage.py migrate
+python manage.py dbshell
 
-# Create superuser
+# Testing
+python scripts/run_tests.py
+python manage.py test club_management.tests.test_models
+
+# Admin and data
 python manage.py createsuperuser
+python manage.py collectstatic
+python manage.py shell_plus
+
+# Reset local database (SQLite only)
+rm db.sqlite3 && python manage.py migrate
+```
+
+### Git Workflow
+
+```bash
+# Create feature branch
+git checkout dev/test-site
+git pull origin dev/test-site
+git checkout -b feature/your-feature-name
+
+# Work on feature, then commit
+git add .
+git commit -m "feat: your feature description"
+git push -u origin feature/your-feature-name
+
+# Create pull request to dev/test-site
+# After review and testing, merge to main
+```
+
+## 🌐 Environments & Deployment
+
+### Local Development
+- **Branch**: `feature/*`
+- **Database**: SQLite (`db.sqlite3`)
+- **Settings**: `bridge_club_management.settings.local`
+- **URL**: http://localhost:8000
+
+```bash
+export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
+python manage.py runserver
+```
+
+### Staging Environment
+- **Branch**: `dev/test-site`
+- **Database**: MySQL (PythonAnywhere)
+- **Settings**: `bridge_club_management.settings.staging`
+
+### Production Environment  
+- **Branch**: `main`
+- **Database**: MySQL (PythonAnywhere)
+- **Settings**: `bridge_club_management.settings.production`
+- **URL**: https://ruder10.pythonanywhere.com
+
+#### Production SSH Access
+
+```bash
+# SSH to production server
+ssh Ruder10@ssh.pythonanywhere.com
+
+# Navigate to project
+cd /home/Ruder10/Bridgehjemmeside/bridge_club_management
+
+# Run Django commands on production
+python manage.py migrate --settings=bridge_club_management.settings.production
+python manage.py collectstatic --settings=bridge_club_management.settings.production
+```
+
+#### Production Database Access
+
+```bash
+# Access MySQL console
+mysql -u Ruder10 -p -h Ruder10.mysql.pythonanywhere-services.com 'Ruder10$bridge_main'
+
+# Django shell on production
+python manage.py shell --settings=bridge_club_management.settings.production
+```
+
+## 📝 VS Code Tasks
+
+Open Command Palette (`Cmd+Shift+P`) → "Tasks: Run Task":
+
+- **Django: Run Server (Local)** - Start development server
+- **Run Tests (local)** - Run all tests  
+- **Docs: Serve Documentation** - Serve docs at http://127.0.0.1:8001
+- **Django: Migrate** - Apply database migrations
+- **Django: Create Superuser** - Create admin user
+
+## 🧪 Testing
+
+### Run Tests
+
+```bash
+# All tests
+python scripts/run_tests.py
+
+# Specific test files
+python manage.py test club_management.tests.test_models
+python manage.py test club_management.tests.test_forms  
+python manage.py test club_management.tests.test_views
+
+# With coverage
+coverage run --source='.' manage.py test
+coverage report
+coverage html
+```
+
+### Test Structure
+- **Location**: `club_management/tests/`
+- **Files**: `test_*.py`
+- **Coverage**: 67 tests total
+- **Framework**: Django TestCase
+
+## 🏗️ Project Structure
+
+### Key Directories
+
+```bash
+bridge_club_management/
+├── bridge_club_management/     # Project settings
+│   └── settings/              # Environment configs
+├── club_management/           # Main app
+│   ├── models.py             # Database models
+│   ├── views.py              # Request handlers
+│   ├── forms.py              # Form definitions
+│   ├── admin.py              # Admin interface
+│   ├── templates/            # HTML templates
+│   ├── tests/                # Test files
+│   └── management/commands/   # Custom commands
+├── requirements/             # Dependencies
+├── scripts/                  # Utility scripts
+└── static/                   # Static files
+```
+
+### Key Models
+- **CustomUser** - User management with availability
+- **Afmeldingsliste** - Registration lists
+- **Substitutliste** - Substitute lists  
+- **UserSubstitutAssignment** - Assignment tracking
+
+## 🔄 Development Workflow
+
+1. **Feature Development**
+   ```bash
+   git checkout -b feature/your-feature
+   # Develop locally with SQLite
+   python scripts/run_tests.py
+   ```
+
+2. **Pull Request Process**
+   - Create PR to `dev/test-site`
+   - GitHub Actions runs tests automatically
+   - Code review required
+   - Test on staging after merge
+
+3. **Production Deployment**
+   - Create PR from `dev/test-site` to `main`
+   - Manual deployment to production
+   - Verify on live site
+
+## 📊 Useful Commands
+
+### Database Operations
+
+```bash
+# Check migrations
+python manage.py showmigrations
+
+# Create migration for schema changes
+python manage.py makemigrations club_management
+
+# SQL for migration (dry run)
+python manage.py sqlmigrate club_management 0001
+
+# Load data from fixtures
+python manage.py loaddata backup.json
+```
+
+### Debugging
+
+```bash
+# Django shell with models loaded
+python manage.py shell_plus
+
+# Show all URLs
+python manage.py show_urls
+
+# Django system check
+python manage.py check
 
 # Collect static files
-python manage.py collectstatic
-
-# Run shell with all models loaded
-python manage.py shell_plus  # (requires django-extensions)
-
-# Run tests
-python manage.py test --verbosity=2
+python manage.py collectstatic --noinput
 ```
 
-### Useful Development Tools
+### Production Utilities
+
 ```bash
-# Django Debug Toolbar (enabled in local.py)
-# Provides SQL query analysis, template debugging, etc.
+# Create database backup
+python manage.py dumpdata > backup_$(date +%Y%m%d).json
 
-# Django Extensions
-python manage.py shell_plus     # Enhanced shell
-python manage.py show_urls      # List all URLs
-python manage.py graph_models   # Generate model diagrams
+# SSH and check logs
+ssh Ruder10@ssh.pythonanywhere.com
+tail -f /var/log/Ruder10.pythonanywhere.com.error.log
+
+# Restart web app
+# Via PythonAnywhere web console: Web tab → Reload
 ```
 
-## Code Quality
+## 🛠️ Environment Variables
 
-### Testing Guidelines
-- Write tests for all new features
-- Test both models and forms
-- Use meaningful test names and docstrings
-- Test edge cases and error conditions
+Create `.env` file in `bridge_club_management/`:
 
-### Best Practices
-- Follow Django conventions
-- Use environment-specific settings
-- Keep sensitive data in environment variables
-- Write clear commit messages
-- Document complex functionality
+```bash
+# Required for local development
+DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
+DJANGO_SECRET_KEY=your-secret-key-here
+DEBUG=True
 
-## Troubleshooting
+# Optional for email testing
+EMAIL_HOST_USER=your-email@example.com
+EMAIL_HOST_PASSWORD=your-app-password
+```
+
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Database Connection Error:**
-   - Check `DJANGO_SETTINGS_MODULE` environment variable
-   - Verify database settings in appropriate settings file
-
-2. **Migration Issues:**
-   ```bash
-   # Reset migrations (local only!)
-   rm club_management/migrations/00*.py
-   python manage.py makemigrations club_management
-   python manage.py migrate
-   ```
-
-3. **Static Files Not Loading:**
-   ```bash
-   python manage.py collectstatic --clear
-   ```
-
-4. **Import Errors:**
-   - Activate correct conda environment: `conda activate bridge`
-   - Check all dependencies installed: `pip install -r requirements/local.txt`
-
-### Environment-Specific Settings
-
-Each environment uses different settings:
-- **Local**: `bridge_club_management.settings.local` (SQLite, DEBUG=True)
-- **Staging**: `bridge_club_management.settings.staging` (MySQL, DEBUG=True)
-- **Production**: `bridge_club_management.settings.production` (MySQL, DEBUG=False)
-
-Set via environment variable:
 ```bash
-export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
+# Permission denied on PythonAnywhere
+chmod +x manage.py
+
+# Module not found errors
+pip install -r requirements/local.txt
+
+# Database locked (SQLite)
+rm db.sqlite3 && python manage.py migrate
+
+# Static files not loading
+python manage.py collectstatic --clear
+
+# Port already in use
+python manage.py runserver 8001
 ```
 
-## Deployment
+### Reset Everything (Local Only)
 
-### PythonAnywhere Deployment
-1. **Staging** (`dev` branch): Automatic deployment to dev environment
-2. **Production** (`main` branch): Manual deployment after staging validation
+```bash
+# Nuclear reset - delete everything and start fresh
+rm db.sqlite3
+rm -rf club_management/migrations/00*.py
+python manage.py makemigrations club_management
+python manage.py migrate
+python manage.py createsuperuser
+```
 
-### Environment Variables on PythonAnywhere
-Required environment variables:
-- `DJANGO_SECRET_KEY`
-- `DB_PASSWORD` 
-- `DB_NAME`, `DB_USER`, `DB_HOST` (if different from defaults)
-- `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` (if email configured) 
+---
+
+*For deployment issues, see [Deployment Guide](DEPLOYMENT.md)*  
+*For operational issues, see [Troubleshooting Guide](TROUBLESHOOTING.md)*
