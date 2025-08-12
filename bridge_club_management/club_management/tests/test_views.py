@@ -288,7 +288,7 @@ class CleanViewTests(TestCase):
             {
                 'list_id': substitutliste.id,
                 'substitut_id': self.user.id,
-                'name': 'Requester Name',
+                'absent_person': 'Requester Name',
                 'email': 'req@example.com',
                 'phone': '+45 11111111',
                 'pre_arranged': 'on',
@@ -304,7 +304,7 @@ class CleanViewTests(TestCase):
         # Verify assignment was updated
         assignment.refresh_from_db()
         self.assertEqual(assignment.status, 'Optaget')
-        self.assertIn('Requester Name', assignment.reservationsnote)
+        self.assertIn('Hvem kommer Ikke: Requester Name', assignment.reservationsnote)
 
     def test_error_handling(self):
         """Test 404 and other error responses."""

@@ -76,7 +76,7 @@ class AjaxTests(TestCase):
         data = {
             'list_id': self.substitutliste.id,
             'substitut_id': self.regular_user.id,
-            'name': 'John Doe',
+            'absent_person': 'John Doe',
             'email': 'john@example.com',
             'phone': '+45 11223344',
             'pre_arranged': 'on',
@@ -96,7 +96,7 @@ class AjaxTests(TestCase):
         # Verify assignment was updated
         assignment = UserSubstitutAssignment.objects.get(id=self.assignment.id)
         self.assertEqual(assignment.status, 'Optaget')
-        self.assertIn('John Doe', assignment.reservationsnote)
+        self.assertIn('Hvem kommer Ikke: John Doe', assignment.reservationsnote)
 
     def test_select_substitut_invalid_list(self):
         """Test substitute selection with invalid list ID."""
