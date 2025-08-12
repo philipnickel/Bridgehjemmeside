@@ -119,7 +119,7 @@ def select_substitut(request):
     if request.method == 'POST':
         list_id = request.POST.get('list_id')
         substitut_id = request.POST.get('substitut_id')
-        name = request.POST.get('name')
+        absent_person = request.POST.get('absent_person')
         email = request.POST.get('email')
         phone = request.POST.get('phone')
         pre_arranged = request.POST.get('pre_arranged') == 'on'
@@ -131,7 +131,7 @@ def select_substitut(request):
                 user_id=substitut_id
             )
             assignment.status = 'Optaget'
-            assignment.reservationsnote = f"Navn: {name}, Email: {email}, Telefon: {phone}"
+            assignment.reservationsnote = f"Hvem kommer Ikke: {absent_person}, Din email: {email}, Din telefon: {phone}"
             assignment.save()
             
             substitutliste = get_object_or_404(Substitutliste, id=list_id)
@@ -142,9 +142,11 @@ def select_substitut(request):
             # Send email to responsible person
             subject = 'Ny substitut valgt'
             message = f"""
-            {name} har valgt substitut {substitut_name} for listen {substitutliste.name} ({substitutliste.day}).
+            Der er valgt substitut {substitut_name} for listen {substitutliste.name} ({substitutliste.day}).
 
-            Kontaktoplysninger på {name}:
+            Hvem kommer ikke: {absent_person}
+            
+            Kontaktoplysninger:
             Email: {email}
             Telefon: {phone}
 
