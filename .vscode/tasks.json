@@ -5,7 +5,10 @@
             "label": "Django: Run Server (Local)",
             "type": "shell",
             "command": "/opt/homebrew/Caskroom/miniconda/base/envs/bridge/bin/python",
-            "args": ["manage.py", "runserver"],
+            "args": [
+                "manage.py",
+                "runserver"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -28,10 +31,12 @@
             "detail": "Run Django development server with local settings (SQLite)"
         },
         {
-            "label": "Django: Run Tests",
+            "label": "Run Tests (local)",
             "type": "shell",
             "command": "/opt/homebrew/Caskroom/miniconda/base/envs/bridge/bin/python",
-            "args": ["manage.py", "test", "--verbosity=2"],
+            "args": [
+                "scripts/run_tests.py"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -48,13 +53,16 @@
                 "clear": true
             },
             "problemMatcher": [],
-            "detail": "Run all Django tests with local settings"
+            "detail": "Run tests from club_management/tests via custom runner"
         },
         {
-            "label": "Django: Run Model Tests",
+            "label": "Run Tests (module)",
             "type": "shell",
             "command": "/opt/homebrew/Caskroom/miniconda/base/envs/bridge/bin/python",
-            "args": ["manage.py", "test", "club_management.tests.test_models", "--verbosity=2"],
+            "args": [
+                "scripts/run_tests.py",
+                "${input:testModule}"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -71,36 +79,16 @@
                 "clear": true
             },
             "problemMatcher": [],
-            "detail": "Run Django model tests (25 tests)"
-        },
-        {
-            "label": "Django: Run Form Tests",
-            "type": "shell",
-            "command": "/opt/homebrew/Caskroom/miniconda/base/envs/bridge/bin/python",
-            "args": ["manage.py", "test", "club_management.tests.test_forms", "--verbosity=2"],
-            "options": {
-                "cwd": "${workspaceFolder}/bridge_club_management",
-                "env": {
-                    "DJANGO_SETTINGS_MODULE": "bridge_club_management.settings.local"
-                }
-            },
-            "group": "test",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true,
-                "clear": true
-            },
-            "problemMatcher": [],
-            "detail": "Run Django form tests (10 tests)"
+            "detail": "Run a specific test module"
         },
         {
             "label": "Django: Migrate",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "migrate"],
+            "args": [
+                "manage.py",
+                "migrate"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -123,7 +111,10 @@
             "label": "Django: Make Migrations",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "makemigrations"],
+            "args": [
+                "manage.py",
+                "makemigrations"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -146,7 +137,10 @@
             "label": "Django: System Check",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "check"],
+            "args": [
+                "manage.py",
+                "check"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -169,7 +163,10 @@
             "label": "Django: Shell Plus",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "shell_plus"],
+            "args": [
+                "manage.py",
+                "shell_plus"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -192,7 +189,10 @@
             "label": "Django: Create Superuser",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "createsuperuser"],
+            "args": [
+                "manage.py",
+                "createsuperuser"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -215,7 +215,11 @@
             "label": "Django: Collect Static Files",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "collectstatic", "--noinput"],
+            "args": [
+                "manage.py",
+                "collectstatic",
+                "--noinput"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -238,7 +242,11 @@
             "label": "Django: Load Sample Data",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "loaddata", "${input:dataFile}"],
+            "args": [
+                "manage.py",
+                "loaddata",
+                "${input:dataFile}"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -261,7 +269,10 @@
             "label": "Django: Show URLs",
             "type": "shell",
             "command": "python",
-            "args": ["manage.py", "show_urls"],
+            "args": [
+                "manage.py",
+                "show_urls"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -284,7 +295,10 @@
             "label": "Django: Reset Local Database",
             "type": "shell",
             "command": "sh",
-            "args": ["-c", "rm -f db.sqlite3 && python manage.py migrate && echo 'Database reset complete!'"],
+            "args": [
+                "-c",
+                "rm -f db.sqlite3 && python manage.py migrate && echo 'Database reset complete!'"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -307,7 +321,11 @@
             "label": "Install: Local Dependencies",
             "type": "shell",
             "command": "pip",
-            "args": ["install", "-r", "requirements/local.txt"],
+            "args": [
+                "install",
+                "-r",
+                "requirements/local.txt"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management"
             },
@@ -327,7 +345,10 @@
             "label": "Git: Checkout Dev Branch",
             "type": "shell",
             "command": "git",
-            "args": ["checkout", "dev"],
+            "args": [
+                "checkout",
+                "dev"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
@@ -344,10 +365,62 @@
             "detail": "Switch to dev branch"
         },
         {
+            "label": "Docs: Serve Documentation",
+            "type": "shell",
+            "command": "mkdocs",
+            "args": [
+                "serve",
+                "--dev-addr=127.0.0.1:8001"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/docs"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "new",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "🏃 Serve documentation locally at http://127.0.0.1:8001 (auto-reload on changes)",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        },
+        {
+            "label": "Docs: Build Documentation",
+            "type": "shell",
+            "command": "mkdocs",
+            "args": [
+                "build",
+                "--verbose"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/docs"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [],
+            "detail": "🔨 Build documentation static files for production deployment"
+        },
+        {
             "label": "Run Tests with Coverage",
             "type": "shell",
             "command": "sh",
-            "args": ["-c", "coverage run --source='.' manage.py test && coverage report && coverage html"],
+            "args": [
+                "-c",
+                "coverage run --source='.' manage.py test && coverage report && coverage html"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}/bridge_club_management",
                 "env": {
@@ -373,6 +446,12 @@
             "description": "Enter the name of the JSON data file to load",
             "default": "live_data_backup.json",
             "type": "promptString"
+        },
+        {
+            "id": "testModule",
+            "type": "promptString",
+            "description": "Enter test module label (e.g., club_management.tests.test_views)",
+            "default": "club_management.tests.test_views"
         }
     ]
 }

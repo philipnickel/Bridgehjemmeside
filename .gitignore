@@ -11,6 +11,10 @@ __pycache__/
 venv/
 .env
 
+# Test credentials and temporary files
+testbrugere.txt
+*brugere.txt
+
 # Node
 bridge_club_management/node_modules/
 
