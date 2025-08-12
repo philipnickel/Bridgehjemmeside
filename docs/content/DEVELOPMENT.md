@@ -1,323 +1,258 @@
-# Development Workflow
+# Bridge Club Management System - Development Workflow
 
-Complete guide to the development process, from feature creation to production deployment.
+## Overview
 
-## 🎯 Overview
+This project uses a structured development workflow with multiple environments:
 
-Our development workflow follows a **three-environment approach** with automated quality control:
+- **main**: Production environment on PythonAnywhere (live site)
+- **dev**: Staging environment on PythonAnywhere (test site) 
+- **feature/***: Local development branches for new features
 
-```
-Local Dev → Development Server → Production
-    ↓              ↓                ↓
-feature/*      develop branch    main branch
-SQLite         MySQL Test        MySQL Prod
-```
+## Environment Setup
 
-## 🌟 Git Workflow
+### Local Development (Feature Branches)
 
-### Branch Structure
-- **`main`** - Production branch (protected)
-- **`develop`** - Development server branch
-- **`feature/*`** - Feature development branches
-- **`hotfix/*`** - Emergency production fixes
+1. **Prerequisites:**
+   - Python 3.11
+   - Conda environment named `bridge` [[memory:5819627]]
+   - Git
 
-### Starting New Features
+2. **Initial Setup:**
+   ```bash
+   # Clone the repository
+   git clone <repository-url>
+   cd Bridgehjemmeside
+   
+   # Activate conda environment
+   conda activate bridge
+   
+   # Install dependencies
+   cd bridge_club_management
+   pip install -r requirements/local.txt
+   
+   # Copy environment template
+   cp env.template .env
+   # Edit .env with your local settings
+   
+   # Run initial migrations
+   export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
+   python manage.py migrate
+   
+   # Create superuser
+   python manage.py createsuperuser
+   
+   # Load sample data (optional)
+   python manage.py loaddata <backup_file>.json
+   
+   # Run development server
+   python manage.py runserver
+   ```
 
+3. **Environment Variables (.env):**
+   ```bash
+   DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
+   DJANGO_SECRET_KEY=your-local-secret-key
+   DEBUG=True
+   ```
+
+### Staging Environment (dev branch)
+
+- **URL**: `bridgeclub-dev.pythonanywhere.com` (replace with actual)
+- **Database**: MySQL on PythonAnywhere (`bridgeclub$bridge_dev`)
+- **Settings**: `bridge_club_management.settings.staging`
+
+### Production Environment (main branch)
+
+- **URL**: `bridgeclub.pythonanywhere.com` (replace with actual)
+- **Database**: MySQL on PythonAnywhere (`bridgeclub$bridge_main`) [[memory:5835904]]
+- **Settings**: `bridge_club_management.settings.production`
+
+## Development Workflow
+
+### Feature Development
+
+1. **Create Feature Branch:**
+   ```bash
+   git checkout dev
+   git pull origin dev
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Local Development:**
+   - Use SQLite database for local testing
+   - Settings automatically configured via `local.py`
+   - Run tests: `python manage.py test`
+
+3. **Testing:**
+   ```bash
+   # Run all tests
+   python manage.py test
+   
+   # Run specific test files
+   python manage.py test club_management.tests.test_models
+   python manage.py test club_management.tests.test_forms
+   
+   # Run with coverage
+   coverage run --source='.' manage.py test
+   coverage report
+   ```
+
+### Git Workflow
+
+1. **Feature Development:**
+   ```bash
+   feature/your-feature ← Local development with SQLite
+   ↓ (PR review & tests pass)
+   dev ← Staging with MySQL on PythonAnywhere
+   ↓ (Tested on staging)
+   main ← Production with MySQL on PythonAnywhere
+   ```
+
+2. **Pull Request Process:**
+   - Create PR from `feature/your-feature` to `dev`
+   - GitHub Actions automatically run tests
+   - Code review required
+   - Merge to `dev` triggers staging deployment
+   - Test on staging environment
+   - Create PR from `dev` to `main` for production
+
+### Database Management
+
+#### Local Development
+- **Database**: SQLite (`db.sqlite3`)
+- **Migrations**: `python manage.py migrate`
+- **Reset database**: Delete `db.sqlite3` and re-run migrations
+
+#### Loading Production Data Locally
 ```bash
-# 1. Start from develop branch
-git checkout develop
-git pull origin develop
+# Option 1: Load from JSON backup
+python manage.py loaddata live_data_backup.json
 
-# 2. Create feature branch
-git checkout -b feature/user-authentication
-
-# 3. Develop locally
-python manage.py runserver
-# Work, test, commit
-
-# 4. Push feature branch
-git add .
-git commit -m "Add user authentication system"
-git push origin feature/user-authentication
+# Option 2: Import from MySQL dump
+# (You'll need to convert MySQL dump to Django fixtures)
 ```
 
-### Feature to Development Server
-
+#### Creating Backups
 ```bash
-# 1. Create Pull Request
-# feature/user-authentication → develop
+# Create JSON backup
+python manage.py dumpdata > backup_$(date +%Y%m%d).json
 
-# 2. Code Review
-# - Automated checks run (linting, tests)
-# - Manual review required
-# - Must pass all checks
-
-# 3. Merge to develop
-# - Triggers automatic deployment to dev server
-# - Development site updates automatically
+# Exclude certain tables if needed
+python manage.py dumpdata --exclude=contenttypes --exclude=auth.permission > backup.json
 ```
 
-### Development to Production
+## GitHub Actions CI/CD
 
+### Automated Testing
+- Triggers on pushes to `main`, `dev`, `develop`
+- Runs on Python 3.11
+- Tests with SQLite (local settings)
+- Runs full test suite
+- Checks for missing migrations
+- Validates static file collection
+
+### Test Requirements
+- All tests must pass before merge
+- No missing migrations
+- Static files must collect successfully
+- Django system checks must pass
+
+## Development Commands
+
+### Django Management Commands
 ```bash
-# 1. Create Pull Request
-# develop → main
-
-# 2. Production Review
-# - All previous checks + production-specific tests
-# - Manual approval required
-# - Database migration validation
-
-# 3. Deploy to Production
-# - Manual approval triggers deployment
-# - Production site updates
-# - Rollback available if needed
-```
-
-## 🏗️ Local Development
-
-### Initial Setup
-```bash
-# Clone repository
-git clone <repository-url>
-cd Bridgehjemmeside/bridge_club_management
-
-# Install dependencies
-pip install -r requirements/local.txt
-
-# Environment setup
-cp .env.template .env
-# Edit .env with your settings
-
-# Database setup
-python manage.py migrate
-python manage.py createsuperuser
-
 # Run development server
 python manage.py runserver
-```
 
-### Daily Development
-```bash
-# Start development
-cd bridge_club_management
-python manage.py runserver
-# Visit: http://127.0.0.1:8000/
-
-# Apply migrations (when models change)
+# Create and apply migrations
 python manage.py makemigrations
 python manage.py migrate
 
-# Update static files (if CSS/JS changes)
+# Create superuser
+python manage.py createsuperuser
+
+# Collect static files
 python manage.py collectstatic
+
+# Run shell with all models loaded
+python manage.py shell_plus  # (requires django-extensions)
+
+# Run tests
+python manage.py test --verbosity=2
 ```
 
-### Testing Your Changes
+### Useful Development Tools
 ```bash
-# Run basic checks
-python manage.py check
+# Django Debug Toolbar (enabled in local.py)
+# Provides SQL query analysis, template debugging, etc.
 
-# Test migrations
-python manage.py migrate --dry-run
-
-# Check for potential issues
-python manage.py validate
+# Django Extensions
+python manage.py shell_plus     # Enhanced shell
+python manage.py show_urls      # List all URLs
+python manage.py graph_models   # Generate model diagrams
 ```
 
-## 🚀 Deployment Process
+## Code Quality
 
-### Development Server Deployment
-**Automatic** when code is pushed to `develop` branch:
+### Testing Guidelines
+- Write tests for all new features
+- Test both models and forms
+- Use meaningful test names and docstrings
+- Test edge cases and error conditions
 
-1. GitHub Actions runs tests
-2. If tests pass → SSH to dev server
-3. Pull latest code
-4. Run migrations
-5. Collect static files
-6. Reload web app
-7. Notify team via Slack/email
+### Best Practices
+- Follow Django conventions
+- Use environment-specific settings
+- Keep sensitive data in environment variables
+- Write clear commit messages
+- Document complex functionality
 
-### Production Deployment
-**Manual approval** required for `main` branch:
+## Troubleshooting
 
-1. All development checks pass
-2. Manual code review
-3. Production readiness checks
-4. **Manual approval** by maintainer
-5. Create database backup
-6. Deploy to production
-7. Health checks
-8. Notify team
+### Common Issues
 
-## 🤖 Automated Quality Control
+1. **Database Connection Error:**
+   - Check `DJANGO_SETTINGS_MODULE` environment variable
+   - Verify database settings in appropriate settings file
 
-### On Every Feature Branch Push
-- **Code Style**: Black, flake8, isort
-- **Type Checking**: mypy (if configured)
-- **Security**: bandit security scanning
-- **Django Checks**: `manage.py check`
-- **Unit Tests**: pytest (if tests exist)
+2. **Migration Issues:**
+   ```bash
+   # Reset migrations (local only!)
+   rm club_management/migrations/00*.py
+   python manage.py makemigrations club_management
+   python manage.py migrate
+   ```
 
-### On Develop Branch
-- All feature checks +
-- **Integration Tests**: Test with dev database
-- **Migration Testing**: Dry-run migrations
-- **Performance Tests**: Basic performance checks
-- **Automatic Deployment**: To development server
+3. **Static Files Not Loading:**
+   ```bash
+   python manage.py collectstatic --clear
+   ```
 
-### On Main Branch (Production)
-- All previous checks +
-- **Production Config Validation**
-- **Database Backup**: Automatic before deploy
-- **Manual Approval**: Required for deployment
-- **Health Checks**: Post-deployment verification
-- **Rollback Capability**: Quick revert if needed
+4. **Import Errors:**
+   - Activate correct conda environment: `conda activate bridge`
+   - Check all dependencies installed: `pip install -r requirements/local.txt`
 
-## 📊 Code Review Guidelines
+### Environment-Specific Settings
 
-### For Reviewers
-- ✅ **Functionality**: Does it work as intended?
-- ✅ **Security**: No sensitive data exposed?
-- ✅ **Performance**: Efficient database queries?
-- ✅ **Maintainability**: Clean, readable code?
-- ✅ **Tests**: Adequate test coverage?
-- ✅ **Documentation**: Updated if needed?
+Each environment uses different settings:
+- **Local**: `bridge_club_management.settings.local` (SQLite, DEBUG=True)
+- **Staging**: `bridge_club_management.settings.staging` (MySQL, DEBUG=True)
+- **Production**: `bridge_club_management.settings.production` (MySQL, DEBUG=False)
 
-### For Developers
-- 📝 **Clear Commits**: Descriptive commit messages
-- 🧪 **Test Changes**: Verify functionality works
-- 📖 **Update Docs**: Keep documentation current
-- 🔒 **Security**: No hardcoded secrets/passwords
-- 🎨 **Code Style**: Follow project conventions
-
-## 🛠️ Environment-Specific Development
-
-### Local Development Features
+Set via environment variable:
 ```bash
-# Local settings active
-DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
-
-# Features:
-- SQLite database (db_local.sqlite3)
-- Debug mode enabled
-- Console email backend
-- Django Debug Toolbar (if installed)
-- Hot reload on file changes
+export DJANGO_SETTINGS_MODULE=bridge_club_management.settings.local
 ```
 
-### Development Server Features
-```bash
-# Development settings active  
-DJANGO_SETTINGS_MODULE=bridge_club_management.settings.develop
+## Deployment
 
-# Features:
-- MySQL test database
-- Debug mode enabled
-- Console email backend
-- Real server environment testing
-- Shared testing with team
-```
+### PythonAnywhere Deployment
+1. **Staging** (`dev` branch): Automatic deployment to dev environment
+2. **Production** (`main` branch): Manual deployment after staging validation
 
-### Production Features
-```bash
-# Production settings active
-DJANGO_SETTINGS_MODULE=bridge_club_management.settings.production
-
-# Features:
-- MySQL production database
-- Debug mode disabled
-- SMTP email backend
-- Security headers enabled
-- Performance optimizations
-```
-
-## 🚨 Emergency Procedures
-
-### Hotfixes (Production Issues)
-```bash
-# 1. Create hotfix branch from main
-git checkout main
-git pull origin main
-git checkout -b hotfix/critical-security-fix
-
-# 2. Make minimal fix
-# Fix only the critical issue
-
-# 3. Fast-track to production
-# Create PR: hotfix/critical-security-fix → main
-# Skip development server testing (emergency only)
-# Require urgent approval
-# Deploy immediately
-
-# 4. Merge back to develop
-git checkout develop
-git merge hotfix/critical-security-fix
-git push origin develop
-```
-
-### Rollback Procedure
-```bash
-# If production deployment fails:
-# 1. Immediate rollback to previous version
-# 2. Restore database backup (if needed)
-# 3. Notify team
-# 4. Investigate and fix issues
-# 5. Redeploy when ready
-```
-
-## 📈 Best Practices
-
-### Commit Messages
-```bash
-# Good commit messages:
-git commit -m "Add user authentication system
-
-- Implement login/logout functionality
-- Add password reset feature
-- Include email verification
-- Add tests for auth views"
-
-# Poor commit messages:
-git commit -m "fixes"
-git commit -m "update stuff"
-```
-
-### Feature Branch Naming
-```bash
-# Good branch names:
-feature/user-authentication
-feature/email-notifications
-feature/admin-dashboard-improvements
-hotfix/security-vulnerability-fix
-
-# Poor branch names:
-my-changes
-fix
-update
-test123
-```
-
-### Database Changes
-```bash
-# Always create migrations
-python manage.py makemigrations
-
-# Test migrations locally
-python manage.py migrate
-
-# Check migration SQL (if complex)
-python manage.py sqlmigrate app_name 0001
-
-# Never edit existing migrations
-# Create new migration instead
-```
-
-## 📞 Getting Help
-
-- **Documentation Issues**: Check the documentation homepage
-- **Development Problems**: See [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-- **Deployment Issues**: See [DEPLOYMENT.md](DEPLOYMENT.md)
-- **Code Questions**: Create GitHub issue or contact team
-
----
-*This workflow ensures code quality, prevents production issues, and enables confident rapid development.*
+### Environment Variables on PythonAnywhere
+Required environment variables:
+- `DJANGO_SECRET_KEY`
+- `DB_PASSWORD` 
+- `DB_NAME`, `DB_USER`, `DB_HOST` (if different from defaults)
+- `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD` (if email configured) 
