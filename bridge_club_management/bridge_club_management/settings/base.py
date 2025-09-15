@@ -22,6 +22,40 @@ INSTALLED_APPS = [
     'bootstrap_datepicker_plus',
 ]
 
+# Wagtail (admin + content tooling)
+# Optionally enable Wagtail if installed
+try:
+    import wagtail  # noqa: F401
+    _WAGTAIL_AVAILABLE = True
+except Exception:
+    _WAGTAIL_AVAILABLE = False
+
+try:
+    from wagtail.contrib import modeladmin as _wa_modeladmin  # noqa: F401
+    _WAGTAIL_MODELADMIN_AVAILABLE = True
+except Exception:
+    _WAGTAIL_MODELADMIN_AVAILABLE = False
+
+if _WAGTAIL_AVAILABLE:
+    INSTALLED_APPS += [
+        'wagtail.contrib.forms',
+        'wagtail.contrib.redirects',
+        'wagtail.contrib.settings',
+        'wagtail.embeds',
+        'wagtail.sites',
+        'wagtail.users',
+        'wagtail.snippets',
+        'wagtail.documents',
+        'wagtail.images',
+        'wagtail.search',
+        'wagtail.admin',
+        'wagtail',
+        'modelcluster',
+        'taggit',
+    ]
+    if _WAGTAIL_MODELADMIN_AVAILABLE:
+        INSTALLED_APPS += ['wagtail.contrib.modeladmin']
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -31,6 +65,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Enable Wagtail redirects middleware (safe to have even if not used yet)
+if _WAGTAIL_AVAILABLE:
+    MIDDLEWARE += [
+        'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+    ]
 
 ROOT_URLCONF = 'bridge_club_management.urls'
 
@@ -45,6 +85,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                # Expose Wagtail settings in templates as `settings`
+                'wagtail.contrib.settings.context_processors.settings',
             ],
         },
     },
@@ -80,6 +122,14 @@ LOCALE_PATHS = [
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Wagtail site branding (only used if Wagtail installed)
+WAGTAIL_SITE_NAME = 'Bridge Club Management'
+WAGTAILADMIN_BASE_URL = os.environ.get('WAGTAILADMIN_BASE_URL', 'http://127.0.0.1:8010')
+
+# Choose which admin is mounted at /admin ("django" or "wagtail").
+# If Wagtail is not installed, this will fall back to Django.
+ADMIN_UI = os.environ.get('ADMIN_UI', 'django')
 
 # Cron classes
 CRON_CLASSES = [

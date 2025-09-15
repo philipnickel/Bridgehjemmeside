@@ -5,8 +5,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Afmeldingslister</title>
+  <title>{{ settings.club_management.SiteCopy.afmeldingslister_title|default:"Afmeldingslister" }}</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  {% load wagtailcore_tags %}
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body class="bg-gray-100">
@@ -15,21 +16,21 @@
   <!-- Quick Navigation Button -->
   <div class="container mx-auto my-4">
     <button onclick="scrollPastIntro()" class="bg-blue-500 text-white px-4 py-2 rounded">
-      Tryk her for at gå direkte til afmeldingslisterne
+      {{ settings.club_management.SiteCopy.go_to_afmeldingslister_btn|default:"Tryk her for at gå direkte til afmeldingslisterne" }}
     </button>
   </div>
 
   <div class="container mx-auto my-8">
     <!-- Afmeldingslister Section -->
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8" id="intro-section" x-data="afmeldingslister">
-      <div class="text-lg ck-content">{{ afmeldingslister_text|safe }}</div>
+      <div class="text-lg ck-content">{{ afmeldingslister_text|richtext }}</div>
     </div>
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8" x-data="afmeldingslister">
-      <h2 class="text-2xl font-bold mb-4">Afmeldingslister</h2>
+      <h2 class="text-2xl font-bold mb-4">{{ settings.club_management.SiteCopy.afmeldingslister_title|default:"Afmeldingslister" }}</h2>
 
       <!-- Afmeldingsliste Selection Dropdown -->
       <div class="mb-4">
-        <label for="afmeldingsliste-selector" class="block text-lg font-medium text-gray-700">Vælg liste:</label>
+        <label for="afmeldingsliste-selector" class="block text-lg font-medium text-gray-700">{{ settings.club_management.SiteCopy.select_list_label|default:"Vælg liste:" }}</label>
         <select id="afmeldingsliste-selector" x-model="selectedAfmeldingsliste"
           @change="showSelectedAfmeldingsliste()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -44,26 +45,26 @@
       <div x-show="selectedAfmeldingsliste == '{{ afmeldingsliste.id }}'"
         class="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
         <h3 class="text-xl font-bold mb-2">{{ afmeldingsliste.name }}</h3>
-        <p class="mb-1"><strong>Dag:</strong> {{ afmeldingsliste.day|date:"l, d F Y" }}</p>
-        <p class="mb-1"><strong>Frist:</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
-        <p class="mb-1"><strong>Afbud:</strong> {% if afmeldingsliste.afbud %}{{ afmeldingsliste.afbud|cut:"Afbud: " }}{% endif %}</p>
+        <p class="mb-1"><strong>{{ settings.club_management.SiteCopy.day_label|default:"Dag:" }}</strong> {{ afmeldingsliste.day|date:"l, d F Y" }}</p>
+        <p class="mb-1"><strong>{{ settings.club_management.SiteCopy.deadline_label|default:"Frist:" }}</strong> {{ afmeldingsliste.deadline|date:"d F Y, H:i" }}</p>
+        <p class="mb-1"><strong>{{ settings.club_management.SiteCopy.afbud_label|default:"Afbud:" }}</strong> {% if afmeldingsliste.afbud %}{{ afmeldingsliste.afbud|cut:"Afbud: " }}{% endif %}</p>
 
         {% now "Y-m-d H:i:s" as current_datetime %}
         {% if current_datetime > afmeldingsliste.deadline|date:"Y-m-d H:i:s" %}
           <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <strong class="font-bold">Frist overskredet</strong>
+            <strong class="font-bold">{{ settings.club_management.SiteCopy.deadline_exceeded|default:"Frist overskredet" }}</strong>
           </div>
         {% else %}
           <!-- Form to Append Afbud -->
           <form onsubmit="submitAfbud(event, '{{ afmeldingsliste.id }}')" action="{% url 'append_afbud' afmeldingsliste.id %}" method="post" class="mt-4">
             {% csrf_token %}
-            <label for="afbud-name-{{ afmeldingsliste.id }}" class="block text-lg font-medium text-gray-700">Meld Afbud:</label>
+            <label for="afbud-name-{{ afmeldingsliste.id }}" class="block text-lg font-medium text-gray-700">{{ settings.club_management.SiteCopy.afbud_form_label|default:"Meld Afbud:" }}</label>
             <input type="text" id="afbud-name-{{ afmeldingsliste.id }}" name="afbud_name"
               class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Indtast navn">
+              placeholder="{{ settings.club_management.SiteCopy.afbud_placeholder|default:'Indtast navn' }}">
             <button type="submit"
               class="mt-2 bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-              Meld Afbud
+              {{ settings.club_management.SiteCopy.afbud_submit|default:"Meld Afbud" }}
             </button>
           </form>
         {% endif %}
@@ -108,7 +109,7 @@
       const afbudName = input.value.trim();
 
       if (!afbudName) {
-        alert('Indtast venligst et navn');
+        alert('{{ settings.club_management.SiteCopy.input_required_msg|default:"Indtast venligst et navn" }}');
         return;
       }
 
@@ -139,15 +140,15 @@
             console.error('Could not find afbud display element');
           }
           input.value = '';
-          alert('Afbud er blevet registreret');
+          alert('{{ settings.club_management.SiteCopy.afbud_success_msg|default:"Afbud er blevet registreret" }}');
         } else {
           console.error('Server error:', data.error);
-          alert(data.error || 'Der opstod en fejl. Prøv igen.');
+          alert(data.error || '{{ settings.club_management.SiteCopy.generic_error_msg|default:"Der opstod en fejl. Prøv igen." }}');
         }
       })
       .catch(error => {
         console.error('Fetch error:', error);
-        alert('Der opstod en uventet fejl. Prøv venligst igen. Detaljer: ' + error.message);
+        alert('{{ settings.club_management.SiteCopy.generic_error_msg|default:"Der opstod en uventet fejl. Prøv venligst igen." }}' + ' Detaljer: ' + error.message);
       });
     }
   </script>
