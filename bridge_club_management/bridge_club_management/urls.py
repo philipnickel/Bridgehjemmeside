@@ -21,6 +21,9 @@ from club_management import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Wagtail admin (keeps existing routes intact)
+    path('cms/', include('wagtail.admin.urls')),
+    path('documents/', include('wagtail.documents.urls')),
     path('', include('club_management.urls')),  # Include the app's URLs
     path('select_substitut/', views.select_substitut, name='select_substitut'),
     path('login/', views.login, name='login'),
