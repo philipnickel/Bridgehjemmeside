@@ -1,9 +1,11 @@
 # views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.mail import send_mail
-from .models import (Configuration, Substitutliste, Afmeldingsliste, Week, 
-                     DayResponsibility, UserSubstitutAssignment, Day, CustomUser, 
-                     Tilmeldingsliste, Pair, TilmeldingslistePair)
+from .models import (Configuration, Substitutliste, Afmeldingsliste, Week,
+                     DayResponsibility, UserSubstitutAssignment, Day, CustomUser,
+                     Tilmeldingsliste, Pair, TilmeldingslistePair, SiteTexts,
+                     HomePage, SubstitutlisterPage, AfmeldingslisterPage, TilmeldingslisterPage)
+from wagtail.models import Site
 from django.contrib.auth.models import User
 from django.utils.dateformat import DateFormat
 import logging
@@ -19,6 +21,7 @@ from django.db.models import F, ExpressionWrapper, fields
 from django.db import transaction
 from django.db.models import Q
 from django.db.models import Min
+from .email_utils import send_tilmeldingsliste_email
 
 logger = logging.getLogger(__name__)
 
@@ -50,8 +53,16 @@ def append_afbud(request, afmeldingsliste_id):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 def front_page(request):
+    # Prefer Wagtail Site Settings if available; fallback to Configuration snippet
+    site = Site.find_for_request(request)
+    site_texts = SiteTexts.for_site(site) if site else None
+    homepage = HomePage.objects.live().first() if HomePage else None
     configuration = Configuration.objects.first()
-    welcome_text = configuration.welcome_text if configuration else ''
+    welcome_text = (
+        homepage.intro if homepage and homepage.intro else
+        (site_texts.welcome_text if site_texts and site_texts.welcome_text else
+         (configuration.welcome_text if configuration else ''))
+    )
     
     substitutlister = Substitutliste.objects.prefetch_related(
         Prefetch(
@@ -208,7 +219,14 @@ def afmeldingsliste_detail(request, afmeldingsliste_id):
 
 def substitutlister(request):
     configuration = Configuration.objects.first()
-    substitutlister_text = configuration.substitutlister_text if configuration else ''
+    site = Site.find_for_request(request)
+    site_texts = SiteTexts.for_site(site) if site else None
+    subs_page = SubstitutlisterPage.objects.live().first() if SubstitutlisterPage else None
+    substitutlister_text = (
+        subs_page.intro if subs_page and subs_page.intro else
+        (site_texts.substitutlister_text if site_texts and site_texts.substitutlister_text else
+         (configuration.substitutlister_text if configuration else ''))
+    )
     
     substitutlister = Substitutliste.objects.prefetch_related(
         Prefetch(
@@ -272,7 +290,14 @@ def substitutlister(request):
 def afmeldingslister(request):
     afmeldingslister = Afmeldingsliste.objects.all()
     configuration = Configuration.objects.first()
-    afmeldingslister_text = configuration.afmeldingslister_text if configuration else ''
+    site = Site.find_for_request(request)
+    site_texts = SiteTexts.for_site(site) if site else None
+    afl_page = AfmeldingslisterPage.objects.live().first() if AfmeldingslisterPage else None
+    afmeldingslister_text = (
+        afl_page.intro if afl_page and afl_page.intro else
+        (site_texts.afmeldingslister_text if site_texts and site_texts.afmeldingslister_text else
+         (configuration.afmeldingslister_text if configuration else ''))
+    )
     afmeldingslister_data = [
         {
             'id': str(liste.id),
@@ -293,7 +318,14 @@ def afmeldingslister(request):
 def tilmeldingslister_view(request):
     tilmeldingslister = Tilmeldingsliste.objects.all().order_by('day')
     configuration = Configuration.objects.first()
-    tilmeldingslister_text = configuration.tilmeldingslister_text if configuration else ''
+    site = Site.find_for_request(request)
+    site_texts = SiteTexts.for_site(site) if site else None
+    tilm_page = TilmeldingslisterPage.objects.live().first() if TilmeldingslisterPage else None
+    tilmeldingslister_text = (
+        tilm_page.intro if tilm_page and tilm_page.intro else
+        (site_texts.tilmeldingslister_text if site_texts and site_texts.tilmeldingslister_text else
+         (configuration.tilmeldingslister_text if configuration else ''))
+    )
     
     for liste in tilmeldingslister:
         liste.tilmeldte_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=False, is_single=False).order_by('parnummer')
@@ -343,6 +375,22 @@ def tilmeldingslister_view(request):
                             email=other_single.email,
                             is_single=False
                         )
+                        # Notify both players that they are now paired
+                        pair_subject = f"Parret op til {tilmeldingsliste.name}"
+                        pair_message = f"""
+                        Hej {other_single.navn} og {player1_name},
+
+                        I er nu parret op til {tilmeldingsliste.name} den {tilmeldingsliste.day}.
+                        Jeres nuværende status: {'Venteliste' if new_pair.på_venteliste else 'Hovedliste'}.
+                        Parnummer: {new_pair.parnummer if new_pair.parnummer else 'Afventer'}
+                        """
+                        recipients = []
+                        if email:
+                            recipients.append(email)
+                        if other_single.email:
+                            recipients.append(other_single.email)
+                        if recipients:
+                            send_tilmeldingsliste_email(pair_subject, pair_message, list(set(recipients)))
                         other_single.delete()
                     else:
                         new_pair = TilmeldingslistePair.objects.create(
@@ -377,7 +425,7 @@ def tilmeldingslister_view(request):
                 På venteliste: {'Ja' if på_venteliste else 'Nej'}
                 """
 
-                send_mail(subject, message, 'from@example.com', [email])
+                send_tilmeldingsliste_email(subject, message, [email])
 
                 return JsonResponse({
                     'success': True, 

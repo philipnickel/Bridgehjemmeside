@@ -1,4 +1,0 @@
-# Documentation dependencies
-mkdocs-material>=9.4.0
-mkdocstrings[python]>=0.23.0
-pymdown-extensions>=10.3.0

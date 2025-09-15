@@ -69,8 +69,25 @@ LOGGING = {
     },
 }
 
-# Email backend for staging (console backend for testing)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email defaults for staging (safe by default)
+TEST_SITE = True
+EMAIL_SUBJECT_PREFIX = '[TEST-SITE] '
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Bridge Klub Testsite <no-reply@test.substitutliste.dk>')
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+
+# Allow enabling real email sending via environment variables
+# Default to console backend for safety
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+ENABLE_EMAILS = os.environ.get('ENABLE_EMAILS', '').lower() == 'true'
+
+if ENABLE_EMAILS or EMAIL_BACKEND.endswith('smtp.EmailBackend'):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    # Accept both EMAIL_HOST_USER and DJANGO_EMAIL_HOST_USER
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER') or os.environ.get('DJANGO_EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD') or os.environ.get('DJANGO_EMAIL_HOST_PASSWORD', '')
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'true').lower() == 'true'
 
 # Development toolbar for staging
 if DEBUG:

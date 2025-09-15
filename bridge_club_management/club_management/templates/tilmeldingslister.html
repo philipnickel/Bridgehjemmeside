@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tilmeldingslister</title>
+  <title>{{ settings.club_management.SiteCopy.tilmeldingslister_title|default:"Tilmeldingslister" }}</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  {% load wagtailcore_tags %}
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.2.2/dist/cdn.min.js" defer></script>
   <style>
     [x-cloak] { display: none !important; }
@@ -16,21 +17,21 @@
   <!-- Quick Navigation Button -->
   <div class="container mx-auto my-4">
     <button onclick="scrollPastJumbotron()" class="bg-blue-500 text-white px-4 py-2 rounded">
-      Tryk her for at gå direkte til tilmeldingslisterne
+      {{ settings.club_management.SiteCopy.go_to_tilmeldingslister_btn|default:"Tryk her for at gå direkte til tilmeldingslisterne" }}
     </button>
   </div>
 
   <div class="container mx-auto my-8" id="tilmeldingslister-section" x-data="tilmeldingslister">
     <!-- Jumbotron and other content -->
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8" id="jumbotron">
-      <div class="text-lg ck-content">{{ tilmeldingslister_text|safe }}</div>
+      <div class="text-lg ck-content">{{ tilmeldingslister_text|richtext }}</div>
     </div>
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
-      <h2 class="text-2xl font-bold mb-4">Tilmeldingslister</h2>
+      <h2 class="text-2xl font-bold mb-4">{{ settings.club_management.SiteCopy.tilmeldingslister_title|default:"Tilmeldingslister" }}</h2>
 
       <!-- Dropdown to select lists -->
       <div class="mb-4">
-        <label for="list_id" class="block text-lg font-medium text-gray-700">Vælg liste fra dropdown:</label>
+        <label for="list_id" class="block text-lg font-medium text-gray-700">{{ settings.club_management.SiteCopy.select_list_label|default:"Vælg liste fra dropdown:" }}</label>
         <select name="list_id" id="list_id" x-model="selectedListId" @change="showSelectedList(); updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           {% for liste in tilmeldingslister %}
@@ -44,10 +45,10 @@
       {% for liste in tilmeldingslister %}
         <div x-show="selectedListId == '{{ liste.id }}'" class="mb-4 bg-gray-50 p-4 rounded-lg shadow-sm">
           <h3 class="text-xl font-bold">{{ liste.name }}</h3>
-          <p><strong>Ansvarlig:</strong> {{ liste.responsible_person.username }} ({{ liste.responsible_person.email }})</p>
-          <p><strong>Tidspunkt:</strong> {{ liste.day }}</p>
-          <p><strong>Frist:</strong> {{ liste.deadline }}</p>
-          <p><strong>Antal pladser (par):</strong> {{ liste.antal_par }}</p>
+          <p><strong>{{ settings.club_management.SiteCopy.responsible_label|default:"Ansvarlig:" }}</strong> {{ liste.responsible_person.username }} ({{ liste.responsible_person.email }})</p>
+          <p><strong>{{ settings.club_management.SiteCopy.time_label|default:"Tidspunkt:" }}</strong> {{ liste.day }}</p>
+          <p><strong>{{ settings.club_management.SiteCopy.deadline_label|default:"Frist:" }}</strong> {{ liste.deadline }}</p>
+          <p><strong>{{ settings.club_management.SiteCopy.capacity_label|default:"Antal pladser (par):" }}</strong> {{ liste.antal_par }}</p>
 
           <!-- Tilmeldte par table -->
           <h3 class="text-lg font-bold mt-6">Tilmeldte Par</h3>
@@ -55,9 +56,9 @@
             <table class="min-w-full divide-y divide-gray-200 hidden md:table">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parnummer</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Navn</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Makker</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ settings.club_management.SiteCopy.pair_no_header|default:"Parnummer" }}</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ settings.club_management.SiteCopy.name_header|default:"Navn" }}</th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ settings.club_management.SiteCopy.partner_header|default:"Makker" }}</th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
@@ -82,8 +83,8 @@
           </div>
 
           <!-- Venteliste table -->
-          <h3 class="text-lg font-bold mt-6">Venteliste</h3>
-          <p class="text-sm text-gray-600 mb-4">I tilfælde af for mange tilmeldte vil de ekstra par blive vist herunder. En anden grund til at blive placeret på venteliste er hvis der er et ulige antal tilmeldte par, så vil det sidst tilmeldte par blive sat på venteliste indtil der kommer endnu en tilmelding, således at der vil være et lige antal tilmeldte par.</p>
+          <h3 class="text-lg font-bold mt-6">{{ settings.club_management.SiteCopy.waitlist_title|default:"Venteliste" }}</h3>
+          <p class="text-sm text-gray-600 mb-4">{{ settings.club_management.SiteCopy.waitlist_description|default:"I tilfælde af for mange tilmeldte vil de ekstra par blive vist herunder. En anden grund til at blive placeret på venteliste er hvis der er et ulige antal tilmeldte par, så vil det sidst tilmeldte par blive sat på venteliste indtil der kommer endnu en tilmelding, således at der vil være et lige antal tilmeldte par." }}</p>
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 hidden md:table">
               <thead class="bg-gray-50">
@@ -135,12 +136,12 @@
           {% now "Y-m-d H:i:s" as current_datetime %}
           {% if liste.deadline|date:"Y-m-d H:i:s" > current_datetime %}
             <!-- Add pair button -->
-            <button @click="openModal('pair')" class="mt-6 bg-blue-500 text-white px-4 py-2 rounded mr-2">Tilføj Par</button>
+            <button @click="openModal('pair')" class="mt-6 bg-blue-500 text-white px-4 py-2 rounded mr-2">{{ settings.club_management.SiteCopy.add_pair_btn|default:"Tilføj Par" }}</button>
             <!-- Add single player button -->
-            <button @click="openModal('single')" class="mt-6 bg-green-500 text-white px-4 py-2 rounded">Tilføj enkelt spiller</button>
+            <button @click="openModal('single')" class="mt-6 bg-green-500 text-white px-4 py-2 rounded">{{ settings.club_management.SiteCopy.add_single_btn|default:"Tilføj enkelt spiller" }}</button>
           {% else %}
             <!-- Deadline exceeded button -->
-            <button class="mt-6 bg-red-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>Frist overskredet</button>
+            <button class="mt-6 bg-red-500 text-white px-4 py-2 rounded cursor-not-allowed" disabled>{{ settings.club_management.SiteCopy.deadline_exceeded_btn|default:"Frist overskredet" }}</button>
           {% endif %}
         </div>
       {% endfor %}
@@ -155,29 +156,29 @@
               </svg>
             </button>
           </div>
-          <h3 class="text-lg font-bold mb-4" x-text="modalType === 'pair' ? 'Tilføj Par' : 'Tilføj enkelt spiller'"></h3>
+          <h3 class="text-lg font-bold mb-4" x-text="modalType === 'pair' ? '{{ settings.club_management.SiteCopy.modal_add_pair_title|default:"Tilføj Par" }}' : '{{ settings.club_management.SiteCopy.modal_add_single_title|default:"Tilføj enkelt spiller" }}'"></h3>
           <form method="post" class="space-y-4" @submit.prevent="submitForm">
             {% csrf_token %}
             <input type="hidden" name="list_id" :value="selectedListId">
             <input type="hidden" name="is_single" :value="modalType === 'single'">
             <div>
-              <label for="player1_name" class="block text-sm font-medium text-gray-700">Navn:</label>
+              <label for="player1_name" class="block text-sm font-medium text-gray-700">{{ settings.club_management.SiteCopy.player1_label|default:"Navn:" }}</label>
               <input type="text" name="player1_name" x-model="player1Name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
             </div>
             <div x-show="modalType === 'pair'">
-              <label for="player2_name" class="block text-sm font-medium text-gray-700">Makker:</label>
+              <label for="player2_name" class="block text-sm font-medium text-gray-700">{{ settings.club_management.SiteCopy.player2_label|default:"Makker:" }}</label>
               <input type="text" name="player2_name" x-model="player2Name" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" :required="modalType === 'pair'">
             </div>
             <div>
-              <label for="phone_number" class="block text-sm font-medium text-gray-700">Telefonnummer:</label>
+              <label for="phone_number" class="block text-sm font-medium text-gray-700">{{ settings.club_management.SiteCopy.phone_label|default:"Telefonnummer:" }}</label>
               <input type="tel" name="phone_number" x-model="phoneNumber" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" pattern="\d{8}" title="Telefonnummer skal være 8 cifre langt" required>
             </div>
             <div>
-              <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+              <label for="email" class="block text-sm font-medium text-gray-700">{{ settings.club_management.SiteCopy.email_label|default:"Email:" }}</label>
               <input type="email" name="email" x-model="email" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
             </div>
             <div>
-              <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded" x-text="modalType === 'pair' ? 'Tilmeld Par' : 'Tilmeld Enkelt Spiller'"></button>
+              <button type="submit" class="w-full bg-blue-500 text-white px-4 py-2 rounded" x-text="modalType === 'pair' ? '{{ settings.club_management.SiteCopy.submit_pair_btn|default:"Tilmeld Par" }}' : '{{ settings.club_management.SiteCopy.submit_single_btn|default:"Tilmeld Enkelt Spiller" }}'"></button>
             </div>
           </form>
         </div>
@@ -190,11 +191,9 @@
            x-cloak>
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
           <div class="mt-3 text-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræftelse</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">{{ settings.club_management.SiteCopy.tl_confirm_title|default:"Bekræftelse" }}</h3>
             <div class="mt-2 px-7 py-3">
-              <p class="text-sm text-gray-500">
-                Du har nu tilmeldt dig. Der er sendt en mail til den ansvarlige.
-              </p>
+              <p class="text-sm text-gray-500">{{ settings.club_management.SiteCopy.tl_confirm_msg|default:"Du har nu tilmeldt dig. Der er sendt en mail til den ansvarlige." }}</p>
             </div>
             <div class="items-center px-4 py-3">
               <button
@@ -202,7 +201,7 @@
                 @click="closeConfirmationModal()"
                 class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
               >
-                Luk
+                {{ settings.club_management.SiteCopy.close_btn|default:"Luk" }}
               </button>
             </div>
           </div>
@@ -216,7 +215,7 @@
            x-cloak>
         <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
           <div class="mt-3 text-center">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Fejl</h3>
+            <h3 class="text-lg leading-6 font-medium text-gray-900">{{ settings.club_management.SiteCopy.error_title|default:"Fejl" }}</h3>
             <div class="mt-2 px-7 py-3">
               <p class="text-sm text-gray-500" x-text="errorMessage">
               </p>

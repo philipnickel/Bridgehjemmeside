@@ -1,13 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-</head>
-<body>
-    <h1>Login</h1>
-    <!-- Add login form here -->
-</body>
-</html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ settings.club_management.SiteCopy.login_title|default:"Log ind • Vælg Admin" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-200 flex items-center justify-center p-6">
+    <main class="w-full max-w-3xl">
+      <div class="bg-white/90 backdrop-blur shadow-xl rounded-2xl overflow-hidden ring-1 ring-slate-200">
+        <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+          <h1 class="text-xl font-semibold text-slate-800">{{ settings.club_management.SiteCopy.login_title|default:"Log ind" }}</h1>
+          <a href="/" class="text-sm text-slate-500 hover:text-slate-700">{{ settings.club_management.SiteCopy.back_to_home_label|default:"Til forsiden" }}</a>
+        </div>
 
+        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <a href="/djadmin/" class="group block rounded-xl border border-slate-200 p-6 hover:border-indigo-300 hover:shadow-md transition">
+            <div class="flex items-center gap-4">
+              <div class="h-12 w-12 rounded-lg bg-indigo-50 text-indigo-600 grid place-items-center group-hover:bg-indigo-100">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                  <path d="M12 2a5 5 0 015 5v2h1.25A1.75 1.75 0 0120 10.75v8.5c0 .966-.784 1.75-1.75 1.75H5.75A1.75 1.75 0 014 19.25v-8.5C4 9.784 4.784 9 5.75 9H7V7a5 5 0 015-5zm3 7V7a3 3 0 10-6 0v2h6z" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-lg font-medium text-slate-800">{{ settings.club_management.SiteCopy.django_admin_label|default:"Django Admin" }}</h2>
+                <p class="text-sm text-slate-500">{{ settings.club_management.SiteCopy.django_admin_desc|default:"Standard Django administration" }}</p>
+              </div>
+            </div>
+          </a>
+
+          <a href="/wadmin/" class="group block rounded-xl border border-slate-200 p-6 hover:border-emerald-300 hover:shadow-md transition">
+            <div class="flex items-center gap-4">
+              <div class="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 grid place-items-center group-hover:bg-emerald-100">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+                  <path fill-rule="evenodd" d="M4.5 6.75A2.25 2.25 0 016.75 4.5h10.5A2.25 2.25 0 0119.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 17.25V6.75zm3 1.5A.75.75 0 018.25 7.5h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zm0 3A.75.75 0 018.25 10.5h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zm0 3a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-4.5a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-lg font-medium text-slate-800">{{ settings.club_management.SiteCopy.wagtail_admin_label|default:"Wagtail Admin" }}</h2>
+                <p class="text-sm text-slate-500">{{ settings.club_management.SiteCopy.wagtail_admin_desc|default:"Indholdsredigering og administration" }}</p>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <div class="px-8 pb-8 text-sm text-slate-500">
+          {{ settings.club_management.SiteCopy.login_hint|default:"Du bliver bedt om at logge ind ved første adgang." }}
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

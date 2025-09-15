@@ -8,6 +8,11 @@ from django.utils.translation import gettext as _
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from model_utils import FieldTracker
+from wagtail.snippets.models import register_snippet
+from wagtail.fields import RichTextField
+from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
+from wagtail.admin.panels import FieldPanel
+from wagtail.models import Page
 
 logger = logging.getLogger(__name__)
 
@@ -159,12 +164,21 @@ class Afmeldingsliste(models.Model):
         return f"{self.name} - {self.day}"
 
 
+@register_snippet
 class Configuration(models.Model):
-    welcome_text = models.TextField(verbose_name=_("Velkomsttekst"))
-    afmeldingslister_text = models.TextField(verbose_name=_("Afmeldingslister Tekst"), default="Default text")
-    substitutlister_text = models.TextField(verbose_name=_("Substitutlister Tekst"), default="Default text")
-    tilmeldingslister_text = models.TextField(verbose_name=_("Tilmeldingslister Tekst"), default="Default text")
-    name = models.CharField(verbose_name=_("Navn"),max_length=100, default="Brugerdefineret tekst")
+    welcome_text = RichTextField(verbose_name=_("Velkomsttekst"))
+    afmeldingslister_text = RichTextField(verbose_name=_("Afmeldingslister Tekst"), blank=True, default="")
+    substitutlister_text = RichTextField(verbose_name=_("Substitutlister Tekst"), blank=True, default="")
+    tilmeldingslister_text = RichTextField(verbose_name=_("Tilmeldingslister Tekst"), blank=True, default="")
+    name = models.CharField(verbose_name=_("Navn"), max_length=100, default="Brugerdefineret tekst")
+
+    panels = [
+        FieldPanel('name'),
+        FieldPanel('welcome_text'),
+        FieldPanel('substitutlister_text'),
+        FieldPanel('afmeldingslister_text'),
+        FieldPanel('tilmeldingslister_text'),
+    ]
 
     def __str__(self):
         return f"Velkomsttekst"
@@ -172,6 +186,362 @@ class Configuration(models.Model):
     class Meta:
         verbose_name = "Brugerdefineret tekst"  # Change the verbose name of the model
         verbose_name_plural = "Brugerdefineret tekst"  # Change the verbose plural name of the model
+
+
+@register_setting
+class SiteTexts(BaseSiteSetting):
+    welcome_text = RichTextField(verbose_name=_("Velkomsttekst"), blank=True)
+    substitutlister_text = RichTextField(verbose_name=_("Substitutlister Tekst"), blank=True)
+    afmeldingslister_text = RichTextField(verbose_name=_("Afmeldingslister Tekst"), blank=True)
+    tilmeldingslister_text = RichTextField(verbose_name=_("Tilmeldingslister Tekst"), blank=True)
+
+    panels = [
+        FieldPanel('welcome_text'),
+        FieldPanel('substitutlister_text'),
+        FieldPanel('afmeldingslister_text'),
+        FieldPanel('tilmeldingslister_text'),
+    ]
+
+    class Meta:
+        verbose_name = "Website tekster"
+
+
+@register_setting
+class SiteCopy(BaseSiteSetting):
+    # Navbar / Site
+    site_title = models.CharField(max_length=100, blank=True, default="")
+    nav_substitutlister = models.CharField(max_length=100, blank=True, default="")
+    nav_afmeldingslister = models.CharField(max_length=100, blank=True, default="")
+    nav_tilmeldingslister = models.CharField(max_length=100, blank=True, default="")
+    nav_login = models.CharField(max_length=100, blank=True, default="")
+
+    # Page titles
+    front_title = models.CharField(max_length=150, blank=True, default="")
+    substitutlister_title = models.CharField(max_length=150, blank=True, default="")
+    afmeldingslister_title = models.CharField(max_length=150, blank=True, default="")
+    tilmeldingslister_title = models.CharField(max_length=150, blank=True, default="")
+
+    # Common labels
+    select_week_label = models.CharField(max_length=100, blank=True, default="")
+    select_day_label = models.CharField(max_length=100, blank=True, default="")
+    select_list_label = models.CharField(max_length=150, blank=True, default="")
+    responsible_label = models.CharField(max_length=100, blank=True, default="")
+    deadline_label = models.CharField(max_length=100, blank=True, default="")
+    day_label = models.CharField(max_length=100, blank=True, default="")
+    time_label = models.CharField(max_length=100, blank=True, default="")
+    capacity_label = models.CharField(max_length=150, blank=True, default="")
+    afbud_label = models.CharField(max_length=100, blank=True, default="")
+
+    # Buttons
+    go_to_substitutlister_btn = models.CharField(max_length=200, blank=True, default="")
+    go_to_afmeldingslister_btn = models.CharField(max_length=200, blank=True, default="")
+    go_to_tilmeldingslister_btn = models.CharField(max_length=200, blank=True, default="")
+    add_pair_btn = models.CharField(max_length=100, blank=True, default="")
+    add_single_btn = models.CharField(max_length=150, blank=True, default="")
+    deadline_exceeded_btn = models.CharField(max_length=150, blank=True, default="")
+    confirm_btn = models.CharField(max_length=100, blank=True, default="")
+    close_btn = models.CharField(max_length=100, blank=True, default="")
+
+    # Substitutlister modal labels
+    confirm_substitut_title = models.CharField(max_length=200, blank=True, default="")
+    absent_person_label = models.CharField(max_length=150, blank=True, default="")
+    your_email_label = models.CharField(max_length=150, blank=True, default="")
+    your_phone_label = models.CharField(max_length=150, blank=True, default="")
+    prearranged_label = models.CharField(max_length=255, blank=True, default="")
+    confirmation_title = models.CharField(max_length=200, blank=True, default="")
+    confirmation_msg = models.CharField(max_length=300, blank=True, default="")
+
+    # Afmeldingslister form
+    afbud_form_label = models.CharField(max_length=150, blank=True, default="")
+    afbud_placeholder = models.CharField(max_length=150, blank=True, default="")
+    afbud_submit = models.CharField(max_length=100, blank=True, default="")
+    deadline_exceeded = models.CharField(max_length=150, blank=True, default="")
+
+    # Tilmeldingslister labels
+    pair_no_header = models.CharField(max_length=100, blank=True, default="")
+    name_header = models.CharField(max_length=100, blank=True, default="")
+    partner_header = models.CharField(max_length=100, blank=True, default="")
+    waitlist_title = models.CharField(max_length=100, blank=True, default="")
+    waitlist_description = models.TextField(blank=True, default="")
+    modal_add_pair_title = models.CharField(max_length=150, blank=True, default="")
+    modal_add_single_title = models.CharField(max_length=150, blank=True, default="")
+    player1_label = models.CharField(max_length=100, blank=True, default="")
+    player2_label = models.CharField(max_length=100, blank=True, default="")
+    submit_pair_btn = models.CharField(max_length=150, blank=True, default="")
+    submit_single_btn = models.CharField(max_length=150, blank=True, default="")
+    tl_confirm_title = models.CharField(max_length=150, blank=True, default="")
+    tl_confirm_msg = models.CharField(max_length=300, blank=True, default="")
+    error_title = models.CharField(max_length=100, blank=True, default="")
+
+    # Login page text
+    login_title = models.CharField(max_length=150, blank=True, default="")
+    back_to_home_label = models.CharField(max_length=120, blank=True, default="")
+    django_admin_label = models.CharField(max_length=120, blank=True, default="")
+    django_admin_desc = models.CharField(max_length=200, blank=True, default="")
+    wagtail_admin_label = models.CharField(max_length=120, blank=True, default="")
+    wagtail_admin_desc = models.CharField(max_length=200, blank=True, default="")
+    login_hint = models.CharField(max_length=240, blank=True, default="")
+
+    # Afmeldingslister messages
+    afbud_success_msg = models.CharField(max_length=200, blank=True, default="")
+    input_required_msg = models.CharField(max_length=200, blank=True, default="")
+    generic_error_msg = models.CharField(max_length=200, blank=True, default="")
+
+    panels = [
+        FieldPanel('site_title'),
+        FieldPanel('nav_substitutlister'), FieldPanel('nav_afmeldingslister'),
+        FieldPanel('nav_tilmeldingslister'), FieldPanel('nav_login'),
+        FieldPanel('front_title'), FieldPanel('substitutlister_title'),
+        FieldPanel('afmeldingslister_title'), FieldPanel('tilmeldingslister_title'),
+        FieldPanel('select_week_label'), FieldPanel('select_day_label'),
+        FieldPanel('select_list_label'), FieldPanel('responsible_label'),
+        FieldPanel('deadline_label'), FieldPanel('day_label'),
+        FieldPanel('time_label'), FieldPanel('capacity_label'), FieldPanel('afbud_label'),
+        FieldPanel('go_to_substitutlister_btn'), FieldPanel('go_to_afmeldingslister_btn'),
+        FieldPanel('go_to_tilmeldingslister_btn'),
+        FieldPanel('add_pair_btn'), FieldPanel('add_single_btn'), FieldPanel('deadline_exceeded_btn'),
+        FieldPanel('confirm_btn'), FieldPanel('close_btn'),
+        FieldPanel('confirm_substitut_title'), FieldPanel('absent_person_label'),
+        FieldPanel('your_email_label'), FieldPanel('your_phone_label'), FieldPanel('prearranged_label'),
+        FieldPanel('confirmation_title'), FieldPanel('confirmation_msg'),
+        FieldPanel('afbud_form_label'), FieldPanel('afbud_placeholder'), FieldPanel('afbud_submit'),
+        FieldPanel('deadline_exceeded'),
+        FieldPanel('pair_no_header'), FieldPanel('name_header'), FieldPanel('partner_header'),
+        FieldPanel('waitlist_title'), FieldPanel('waitlist_description'),
+        FieldPanel('modal_add_pair_title'), FieldPanel('modal_add_single_title'),
+        FieldPanel('player1_label'), FieldPanel('player2_label'),
+        FieldPanel('submit_pair_btn'), FieldPanel('submit_single_btn'),
+        FieldPanel('tl_confirm_title'), FieldPanel('tl_confirm_msg'), FieldPanel('error_title'),
+        # Login
+        FieldPanel('login_title'), FieldPanel('back_to_home_label'),
+        FieldPanel('django_admin_label'), FieldPanel('django_admin_desc'),
+        FieldPanel('wagtail_admin_label'), FieldPanel('wagtail_admin_desc'),
+        FieldPanel('login_hint'),
+        # Afmeldingslister messages
+        FieldPanel('afbud_success_msg'), FieldPanel('input_required_msg'), FieldPanel('generic_error_msg'),
+    ]
+
+    class Meta:
+        verbose_name = "Website labels"
+
+
+class HomePage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel('intro'),
+    ]
+
+    parent_page_types = ['wagtailcore.Page']
+    subpage_types = ['club_management.SubstitutlisterPage', 'club_management.AfmeldingslisterPage', 'club_management.TilmeldingslisterPage']
+
+    def get_context(self, request, *args, **kwargs):
+        from django.db.models import Prefetch
+        context = super().get_context(request, *args, **kwargs)
+        # Build same context as front_page view
+        from .models import Substitutliste, UserSubstitutAssignment, Afmeldingsliste, Week, Day, DayResponsibility
+        substitutlister = Substitutliste.objects.prefetch_related(
+            Prefetch(
+                'usersubstitutassignment_set',
+                queryset=UserSubstitutAssignment.objects.select_related('user'),
+                to_attr='assignments'
+            )
+        ).all()
+        afmeldingslister = Afmeldingsliste.objects.all().order_by('day')
+        weeks = Week.objects.all()
+        try:
+            weeks = sorted(weeks, key=lambda week: int(week.name.split('-')[0]))
+        except Exception:
+            weeks = list(weeks)
+        day_name_mapping = {
+            'Monday': 'Mandag',
+            'Tuesday': 'Tirsdag',
+            'Wednesday': 'Onsdag',
+            'Thursday': 'Torsdag',
+            'Friday': 'Fredag',
+            'Saturday': 'Lørdag',
+            'Sunday': 'Søndag'
+        }
+        responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
+        responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in responsibilities}
+        for substitutliste in substitutlister:
+            day_name = substitutliste.day.strftime("%A")
+            try:
+                day = Day.objects.get(name=day_name)
+            except Day.DoesNotExist:
+                day = None
+            substitutliste.responsible_name = ""
+            substitutliste.responsible_email = ""
+            if day:
+                rc = responsibility_dict.get(day.name.lower())
+                if rc:
+                    substitutliste.responsible_name = rc.get_full_name() or rc.username
+                    substitutliste.responsible_email = rc.email
+            substitutliste.assigned_substitutter = [
+                {
+                    'name': a.user.get_full_name() or a.user.username,
+                    'phone': a.user.phone_number,
+                    'note': a.user.custom_note,
+                    'email': a.user.email,
+                    'id': a.user.id,
+                    'status': a.get_status_display(),
+                    'reservationsnote': a.reservationsnote,
+                    'række': a.user.række.name if a.user.række else 'N/A'
+                }
+                for a in getattr(substitutliste, 'assignments', [])
+            ]
+        context.update({
+            'welcome_text': self.intro,
+            'substitutlister': substitutlister,
+            'afmeldingslister': afmeldingslister,
+            'weeks': weeks,
+            'days': Day.objects.all(),
+            'day_name_mapping': day_name_mapping,
+        })
+        return context
+
+
+class SubstitutlisterPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel('intro'),
+    ]
+
+    parent_page_types = ['club_management.HomePage', 'wagtailcore.Page']
+    subpage_types = []
+
+    def get_context(self, request, *args, **kwargs):
+        from django.db.models import Prefetch
+        context = super().get_context(request, *args, **kwargs)
+        from .models import Substitutliste, UserSubstitutAssignment, Week, Day, DayResponsibility
+        substitutlister = Substitutliste.objects.prefetch_related(
+            Prefetch(
+                'usersubstitutassignment_set',
+                queryset=UserSubstitutAssignment.objects.select_related('user'),
+                to_attr='assignments'
+            )
+        ).all()
+        weeks = Week.objects.all()
+        try:
+            weeks = sorted(weeks, key=lambda week: int(week.name.split('-')[0]))
+        except Exception:
+            weeks = list(weeks)
+        day_name_mapping = {
+            'Monday': 'Mandag',
+            'Tuesday': 'Tirsdag',
+            'Wednesday': 'Onsdag',
+            'Thursday': 'Torsdag',
+            'Friday': 'Fredag',
+            'Saturday': 'Lørdag',
+            'Sunday': 'Søndag'
+        }
+        responsibilities = DayResponsibility.objects.select_related('day', 'coordinator').all()
+        responsibility_dict = {resp.day.name.lower(): resp.coordinator for resp in responsibilities}
+        for substitutliste in substitutlister:
+            day_name = substitutliste.day.strftime("%A")
+            try:
+                day = Day.objects.get(name=day_name)
+            except Day.DoesNotExist:
+                day = None
+            substitutliste.responsible_name = ""
+            substitutliste.responsible_email = ""
+            if day:
+                rc = responsibility_dict.get(day.name.lower())
+                if rc:
+                    substitutliste.responsible_name = rc.get_full_name() or rc.username
+                    substitutliste.responsible_email = rc.email
+            substitutliste.assigned_substitutter = [
+                {
+                    'name': a.user.get_full_name() or a.user.username,
+                    'phone': a.user.phone_number,
+                    'note': a.user.custom_note,
+                    'email': a.user.email,
+                    'id': a.user.id,
+                    'status': a.get_status_display(),
+                    'reservationsnote': a.reservationsnote,
+                    'række': a.user.række.name if a.user.række else 'N/A'
+                }
+                for a in getattr(substitutliste, 'assignments', [])
+            ]
+        context.update({
+            'substitutlister_text': self.intro,
+            'substitutlister': substitutlister,
+            'weeks': weeks,
+            'days': Day.objects.all(),
+            'day_name_mapping': day_name_mapping,
+        })
+        return context
+
+
+class AfmeldingslisterPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel('intro'),
+    ]
+
+    parent_page_types = ['club_management.HomePage', 'wagtailcore.Page']
+    subpage_types = []
+
+    def get_context(self, request, *args, **kwargs):
+        import json
+        context = super().get_context(request, *args, **kwargs)
+        from .models import Afmeldingsliste
+        afmeldingslister = Afmeldingsliste.objects.all()
+        afmeldingslister_data = [
+            {
+                'id': str(liste.id),
+                'name': liste.name,
+                'day': liste.day.isoformat(),
+                'deadline': liste.deadline.isoformat(),
+                'afbud': liste.afbud or ''
+            }
+            for liste in afmeldingslister
+        ]
+        context.update({
+            'afmeldingslister_text': self.intro,
+            'afmeldingslister': afmeldingslister,
+            'afmeldingslister_json': json.dumps(afmeldingslister_data),
+        })
+        return context
+
+
+class TilmeldingslisterPage(Page):
+    intro = RichTextField(blank=True)
+
+    content_panels = Page.content_panels + [
+        FieldPanel('intro'),
+    ]
+
+    parent_page_types = ['club_management.HomePage', 'wagtailcore.Page']
+    subpage_types = []
+
+    def get_context(self, request, *args, **kwargs):
+        from django.db.models import Min, Q
+        context = super().get_context(request, *args, **kwargs)
+        from .models import Tilmeldingsliste, TilmeldingslistePair
+        tilmeldingslister = Tilmeldingsliste.objects.all().order_by('day')
+        for liste in tilmeldingslister:
+            liste.tilmeldte_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=False, is_single=False).order_by('parnummer')
+            liste.venteliste_par = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, på_venteliste=True, is_single=False).order_by('parnummer')
+            liste.single_players = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, is_single=True).order_by('id')
+            liste.all_pairs = TilmeldingslistePair.objects.filter(tilmeldingsliste=liste, is_single=False).order_by('parnummer')
+        selected_list_id = request.GET.get('selected_list_id')
+        if selected_list_id:
+            try:
+                selected_list = Tilmeldingsliste.objects.get(id=selected_list_id)
+            except Tilmeldingsliste.DoesNotExist:
+                selected_list = None
+        else:
+            oldest_date = Tilmeldingsliste.objects.aggregate(Min('day'))['day__min']
+            selected_list = Tilmeldingsliste.objects.filter(day=oldest_date).first()
+        context.update({
+            'tilmeldingslister_text': self.intro,
+            'tilmeldingslister': tilmeldingslister,
+            'selected_list': selected_list,
+        })
+        return context
 
 
 class Day(models.Model):

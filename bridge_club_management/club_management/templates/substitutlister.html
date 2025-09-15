@@ -5,8 +5,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Substitutlister</title>
+  <title>{{ settings.club_management.SiteCopy.substitutlister_title|default:"Substitutlister" }}</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  {% load wagtailcore_tags %}
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   <style>
     [x-cloak] { display: none !important; }
@@ -21,22 +22,22 @@
   <!-- Quick Navigation Button -->
   <div class="container mx-auto my-4">
     <button onclick="scrollPastJumbotron()" class="bg-blue-500 text-white px-4 py-2 rounded">
-      Tryk her for at gå direkte til substitutlisterne
+      {{ settings.club_management.SiteCopy.go_to_substitutlister_btn|default:"Tryk her for at gå direkte til substitutlisterne" }}
     </button>
   </div>
 
   <div class="container mx-auto my-8">
     <!-- Jumbotron with Substitutlister Text -->
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8" id="jumbotron">
-      <div class="text-lg ck-content">{{ substitutlister_text|safe }}</div>
+      <div class="text-lg ck-content">{{ substitutlister_text|richtext }}</div>
     </div>
   </div>
   <div class="container mx-auto my-8" x-data="substitutlister">
     <div class="bg-white shadow-lg rounded-lg p-8 mb-8">
-      <h2 class="text-2xl font-bold mb-4">Substitutlister</h2>
+      <h2 class="text-2xl font-bold mb-4">{{ settings.club_management.SiteCopy.substitutlister_title|default:"Substitutlister" }}</h2>
       <!-- Week Selection Dropdown -->
       <div class="mb-4">
-        <label for="week-selector" class="block text-lg font-medium text-gray-700">Vælg uge:</label>
+        <label for="week-selector" class="block text-lg font-medium text-gray-700">{{ settings.club_management.SiteCopy.select_week_label|default:"Vælg uge:" }}</label>
         <select id="week-selector" x-model="selectedWeek" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           {% for week in weeks %}
@@ -46,7 +47,7 @@
       </div>
       <!-- Day Selection Dropdown -->
       <div class="mb-4">
-        <label for="day-selector" class="block text-lg font-medium text-gray-700">Vælg dag:</label>
+        <label for="day-selector" class="block text-lg font-medium text-gray-700">{{ settings.club_management.SiteCopy.select_day_label|default:"Vælg dag:" }}</label>
         <select id="day-selector" x-model="selectedDay" @change="updateUrl()"
           class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
           {% for day in days %}
@@ -68,13 +69,13 @@
           </h3>
           <div class="mt-2 flex justify-between items-center text-sm text-gray-600">
             <div>
-              <span class="font-semibold">Ansvarlig:</span> {{ substitutliste.responsible_name }}
+              <span class="font-semibold">{{ settings.club_management.SiteCopy.responsible_label|default:"Ansvarlig:" }}</span> {{ substitutliste.responsible_name }}
               {% if substitutliste.responsible_email %}
                 ({{ substitutliste.responsible_email }})
               {% endif %}
             </div>
             <div>
-              <span class="font-semibold">Frist:</span> {{ substitutliste.deadline|date:"d-m-y H:i" }}
+              <span class="font-semibold">{{ settings.club_management.SiteCopy.deadline_label|default:"Frist:" }}</span> {{ substitutliste.deadline|date:"d-m-y H:i" }}
             </div>
           </div>
         </div>
@@ -134,29 +135,29 @@
           </button>
         </div>
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræft valg af substitut</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">{{ settings.club_management.SiteCopy.confirm_substitut_title|default:"Bekræft valg af substitut" }}</h3>
           <form id="substitut-form" class="mt-2 text-left" x-data="{ absentPerson: '', email: '', phone: '', preArranged: false, formError: '' }">
             <input type="hidden" id="list-id" name="list_id">
             <input type="hidden" id="substitut-id" name="substitut_id">
             <div class="mb-4">
-              <label for="absent-person" class="block text-sm font-medium text-gray-700">Hvem kommer Ikke?</label>
+              <label for="absent-person" class="block text-sm font-medium text-gray-700">{{ settings.club_management.SiteCopy.absent_person_label|default:"Hvem kommer Ikke?" }}</label>
               <input type="text" id="absent-person" name="absent_person" x-model="absentPerson" required
                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div class="mb-4">
-              <label for="email" class="block text-sm font-medium text-gray-700">Din email</label>
+              <label for="email" class="block text-sm font-medium text-gray-700">{{ settings.club_management.SiteCopy.your_email_label|default:"Din email" }}</label>
               <input type="email" id="email" name="email" x-model="email" required
                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div class="mb-4">
-              <label for="phone" class="block text-sm font-medium text-gray-700">Din telefon</label>
+              <label for="phone" class="block text-sm font-medium text-gray-700">{{ settings.club_management.SiteCopy.your_phone_label|default:"Din telefon" }}</label>
               <input type="tel" id="phone" name="phone" x-model="phone" required
                      class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
             </div>
             <div class="mb-4">
               <label class="inline-flex items-center">
                 <input type="checkbox" name="pre_arranged" x-model="preArranged" class="form-checkbox" required>
-                <span class="ml-2 text-sm text-gray-700">Jeg bekræfter, at jeg har lavet en aftale på forhånd</span>
+                <span class="ml-2 text-sm text-gray-700">{{ settings.club_management.SiteCopy.prearranged_label|default:"Jeg bekræfter, at jeg har lavet en aftale på forhånd" }}</span>
               </label>
             </div>
             <div x-show="formError" class="mb-4 text-red-500 text-sm" x-text="formError"></div>
@@ -166,7 +167,7 @@
                       :disabled="!absentPerson || !email || !phone || !preArranged"
                       :class="{ 'opacity-50 cursor-not-allowed': !absentPerson || !email || !phone || !preArranged }"
                       class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                Bekræft
+                {{ settings.club_management.SiteCopy.confirm_btn|default:"Bekræft" }}
               </button>
             </div>
           </form>
@@ -181,11 +182,9 @@
          x-cloak>
       <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3 text-center">
-          <h3 class="text-lg leading-6 font-medium text-gray-900">Bekræftelse</h3>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">{{ settings.club_management.SiteCopy.confirmation_title|default:"Bekræftelse" }}</h3>
           <div class="mt-2 px-7 py-3">
-            <p class="text-sm text-gray-500">
-              Du har nu valgt denne substitut. Der er sendt en mail til den ansvarlige.
-            </p>
+            <p class="text-sm text-gray-500">{{ settings.club_management.SiteCopy.confirmation_msg|default:"Du har nu valgt denne substitut. Der er sendt en mail til den ansvarlige." }}</p>
           </div>
           <div class="items-center px-4 py-3">
             <button
@@ -193,7 +192,7 @@
               @click="closeConfirmationModal()"
               class="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
             >
-              Luk
+              {{ settings.club_management.SiteCopy.close_btn|default:"Luk" }}
             </button>
           </div>
         </div>
@@ -341,12 +340,12 @@
               this.openConfirmationModal();
             } else {
               console.error('Error:', data.error);
-              alert('Der opstod en fejl: ' + data.error);
+              alert('{{ settings.club_management.SiteCopy.generic_error_msg|default:"Der opstod en fejl. Prøv igen." }}' + (data.error ? (': ' + data.error) : ''));
             }
           })
           .catch(error => {
             console.error('Error:', error);
-            alert('Der opstod en uventet fejl. Prøv venligst igen.');
+            alert('{{ settings.club_management.SiteCopy.generic_error_msg|default:"Der opstod en uventet fejl. Prøv venligst igen." }}');
           });
         },
         openAfbudModal(listId, substitutId) {
@@ -379,16 +378,16 @@
           .then(data => {
             if (data.success) {
               this.closeAfbudModal();
-              alert('Afbud er blevet meldt.');
+              alert('{{ settings.club_management.SiteCopy.afbud_success_msg|default:"Afbud er blevet registreret" }}');
               location.reload();
             } else {
               console.error('Error:', data.error);
-              alert('Der opstod en fejl: ' + data.error);
+              alert('{{ settings.club_management.SiteCopy.generic_error_msg|default:"Der opstod en fejl. Prøv igen." }}' + (data.error ? (': ' + data.error) : ''));
             }
           })
           .catch(error => {
             console.error('Error:', error);
-            alert('Der opstod en uventet fejl. Prøv venligst igen.');
+            alert('{{ settings.club_management.SiteCopy.generic_error_msg|default:"Der opstod en uventet fejl. Prøv venligst igen." }}');
           });
         }
       }));

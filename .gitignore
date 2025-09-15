@@ -7,9 +7,16 @@ __pycache__/
 *.pyo
 *.pyd
 *.log
+.coverage
+htmlcov/
 .venv/
 venv/
 .env
+*.env
+
+# Databases
+*.sqlite3*
+bridge_club_management/db.sqlite3*
 
 # Test credentials and temporary files
 testbrugere.txt
@@ -22,9 +29,11 @@ bridge_club_management/node_modules/
 bridge_club_management/bridge_club_management/static/
 bridge_club_management/bridge_club_management/media/
 bridge_club_management/bridge_club_management/backups/
+staticfiles/
+media/
 
 # Docs build output
-docs/site/
+docs/
 
 # Editors
 .vscode/

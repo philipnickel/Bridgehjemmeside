@@ -2,10 +2,6 @@
 
 A professional Django-based management system for bridge clubs.
 
-## 📚 Documentation
-
-**Complete documentation is available at: [https://philipnickel.github.io/Bridgehjemmeside/](https://philipnickel.github.io/Bridgehjemmeside/)**
-
 ## 🚀 Quick Start
 
 ```bash
@@ -23,6 +19,15 @@ python manage.py runserver
 
 **Local site**: http://localhost:8000
 
----
+## 🛠 Makefile
 
-📖 **For complete setup instructions, development workflow, API reference, and troubleshooting guides, visit the [full documentation](https://philipnickel.github.io/Bridgehjemmeside/).**
+Common workflows are available via the Makefile at the repo root:
+
+```bash
+make help           # list targets
+make server         # run dev server
+make test           # run tests
+make migrate        # apply migrations
+```
+
+---
